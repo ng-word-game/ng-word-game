@@ -1,0 +1,231 @@
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"math/rand"
+	"net/http"
+
+	"github.com/gorilla/websocket"
+)
+
+var upgrader = &websocket.Upgrader{
+	ReadBufferSize: 1024,
+	WriteBufferSize: 256,
+}
+
+const (
+	resultOK = iota
+	resultErr = iota
+)
+
+type NgChar struct {
+	Name string `json:"name"`
+	Char string `json:"char"`
+}
+
+type outbound struct {
+	Result int `json:"result"`
+	GameState int `json:"game_state"`
+	Thema string `json:"thema"`
+	Users []string `json:"users"`
+	Words map[string]string `json:"wors"`
+	WordState map[string]WordState `json:"word_state"`
+	NextTurn string `json:"next_turn"`
+	Winner string `json:"winner"`
+	NgChars []NgChar `json:"ng_chars"`
+}
+
+func createOutbound(result int, room *Room) ([]byte, error) {
+	clientNames := []string{}
+	words := map[string]string{}
+	clientWordStates := map[string]WordState{}
+
+	for _, v := range room.clients.values() {
+		clientNames = append(clientNames, v.name)
+		words[v.name] = v.Word
+		clientWordStates[v.name] = v.wordState
+	}
+
+	out, err := json.Marshal(outbound{
+		Result:    result,
+		GameState: room.gameState,
+		Thema:     room.thema,
+		Users:     clientNames,
+		Words:     words,
+		WordState: clientWordStates,
+		NextTurn:  room.clients.values()[room.nextClientIdx].name,
+		Winner:    room.winner,
+		NgChars:   room.ngChars,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+const (
+	setWord = iota
+	setNgChar = iota
+)
+
+type inbound struct {
+	Type int `json:"type"`
+	Word string `json:"word"`
+	NgChar string `json:"ng_char"`
+}
+
+type wsHandler struct {
+	rooms Rooms
+	join chan *Client
+	leave chan *Client
+	roomSend chan struct{
+		from *Client
+		room *Room
+		body []byte
+	}
+}
+
+func NewWshandler() *wsHandler {
+	return &wsHandler{
+		rooms: map[*Room]bool{},
+		join:  make(chan *Client),
+		leave: make(chan *Client),
+		roomSend: make(chan struct {
+			from *Client
+			room *Room
+			body []byte
+		}),
+	}
+}
+
+func (h *wsHandler) run() {
+	log.Println("run", &h)
+	for {
+		select {
+		case client := <-h.join:
+			log.Printf("%v join", client.name)
+			canEnter, room := h.rooms.SearchAvailableRoomIdx()
+			if !canEnter  {
+				room = h.createRoom()
+			}
+			room.join(client)
+			out, err := createOutbound(resultOK, room)
+			if err != nil {
+				continue
+			}
+			for _, client := range room.clients {
+				client.send <- out
+			}
+		case client := <- h.leave:
+			room := client.room
+			room.gameStop()
+			delete(room.clients, client.id)
+			out, err := json.Marshal(outbound{GameState: GameStop})
+			if err != nil {
+				continue
+			}
+			for _, client := range room.clients {
+				client.send <- out
+			}
+			delete(h.rooms, client.room)
+		case roomSend := <- h.roomSend:
+			var in inbound
+			err := json.Unmarshal(roomSend.body, &in)
+			if err != nil {
+				roomSend.from.handleError(err)
+			}
+			switch in.Type {
+			case setWord:
+				log.Printf("word: "+ in.Word)
+				roomSend.from.setWord(in.Word)
+				out, err := createOutbound(resultOK, roomSend.room)
+				if err != nil {
+					continue
+				}
+				roomSend.from.send <- out
+	
+				if roomSend.room.checkMaxPlayer() && roomSend.room.checkAllWords() {
+					roomSend.room.gameStart()
+					out, err := createOutbound(resultOK, roomSend.room)
+					if err != nil {
+						continue
+					}
+					for _, client := range roomSend.room.clients {
+						client.send <- out
+					}
+				}
+			case setNgChar:
+				if roomSend.room.gameState != GameStart {
+					continue
+				}
+				if roomSend.room.clients.values()[roomSend.room.nextClientIdx] != roomSend.from {
+					continue
+				}
+				log.Printf("ngChar: " + in.NgChar)
+				roomSend.room.ngChars = append(roomSend.room.ngChars, NgChar{Name: roomSend.from.name, Char: in.NgChar})
+				roomSend.room.changeTurn()
+				roomSend.room.applyNgChar(in.NgChar)
+				if checkEnd, _ := roomSend.room.checkEndGame(); checkEnd {
+					roomSend.room.gameEnd(roomSend.from.name)
+				}
+				out, err := createOutbound(resultOK, roomSend.room)
+				if err != nil {
+					continue
+				}
+				for _, client := range roomSend.room.clients {
+					client.send <- out
+				}
+			}
+		}
+	}
+}
+
+func (h *wsHandler) createRoom() *Room {
+	room := NewRoom()
+	h.rooms[room] = true
+
+	return room
+}
+
+func (h *wsHandler) NewClient(id string, name string, c *websocket.Conn) *Client {
+	log.Printf("new client: " + name)
+	return &Client{
+		wsHandler: h,
+		room:      &Room{},
+		id:        id,
+		name:      name,
+		Word:      "",
+		conn:      c,
+		send:      make(chan []byte),
+		wordState: []map[string]int{},
+	}
+}
+
+func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("upgrade: ", err)
+		return
+	}
+
+	client := h.NewClient(randomString(10), r.FormValue("name"), conn)
+	h.join <- client
+	defer func() {
+		conn.Close()
+	}()
+	go client.write()
+	client.read()
+}
+
+func randomString(l int) string {
+	bytes := make([]byte, l)
+	pool := "_:$%&/()"
+	for i := 0; i < l; i++ {
+		bytes[i] = pool[rand.Intn(len(pool))]
+	}
+
+	return string(bytes)
+}

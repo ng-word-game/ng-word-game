@@ -1,0 +1,24 @@
+version: "3"
+services:
+  app:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    tty: true
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backend:/go/src/github.com/kikils/go-websocket
+
+  frontend:
+      build: 
+        context: ./frontend
+        dockerfile: Dockerfile.prod
+      ports:
+        - "80:80"
+      stdin_open: true
+      tty: true
+      environment:
+        - CHOKIDAR_USEPOLLING=true
+      volumes:
+        - ./frontend/src:/src
