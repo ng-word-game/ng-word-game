@@ -4,7 +4,7 @@ services:
     build: ./backend
     tty: true
     ports:
-      - 8080:8080
+      - 443:443
     volumes:
       - ./backend:/go/src/github.com/kikils/go-websocket
 

@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", "0.0.0.0:8080", "http service address")
+	addr = flag.String("addr", "0.0.0.0:443", "http service address")
 )
 
 func main() {

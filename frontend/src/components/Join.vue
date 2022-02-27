@@ -59,7 +59,7 @@ export default defineComponent({
     const registered = () => {
       store.setName(name.value)
       waiting.value = true
-      const socket = new WebSocket(`ws://${location.hostname}:8080/?name=` + name.value)
+      const socket = new WebSocket(`ws://${location.hostname}:443/?name=` + name.value)
       console.log(socket)
       socket.addEventListener('open', () => {
         console.log('open')
