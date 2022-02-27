@@ -130,53 +130,62 @@ func (h *wsHandler) run() {
 				client.send <- out
 			}
 			delete(h.rooms, client.room)
-		case roomSend := <- h.roomSend:
+		}
+	}
+}
+
+func (r *Room) run() {
+	for {
+		select {
+		case send := <- r.send:
 			var in inbound
-			err := json.Unmarshal(roomSend.body, &in)
+			err := json.Unmarshal(send.body, &in)
 			if err != nil {
-				roomSend.from.handleError(err)
+				send.from.handleError(err)
 			}
 			switch in.Type {
 			case setWord:
 				log.Printf("word: "+ in.Word)
-				roomSend.from.setWord(in.Word)
-				out, err := createOutbound(resultOK, roomSend.room)
+				send.from.setWord(in.Word)
+				out, err := createOutbound(resultOK, r)
 				if err != nil {
 					continue
 				}
-				roomSend.from.send <- out
+				send.from.send <- out
 	
-				if roomSend.room.checkMaxPlayer() && roomSend.room.checkAllWords() {
-					roomSend.room.gameStart()
-					out, err := createOutbound(resultOK, roomSend.room)
+				if r.checkMaxPlayer() && r.checkAllWords() {
+					r.gameStart()
+					out, err := createOutbound(resultOK, r)
 					if err != nil {
 						continue
 					}
-					for _, client := range roomSend.room.clients {
+					for _, client := range r.clients {
 						client.send <- out
 					}
 				}
 			case setNgChar:
-				if roomSend.room.gameState != GameStart {
+				if r.gameState != GameStart {
 					continue
 				}
-				if roomSend.room.clients.values()[roomSend.room.nextClientIdx] != roomSend.from {
-					continue
-				}
+				// if r.clients.values()[r.nextClientIdx] != send.from {
+				// 	continue
+				// }
 				log.Printf("ngChar: " + in.NgChar)
-				roomSend.room.ngChars = append(roomSend.room.ngChars, NgChar{Name: roomSend.from.name, Char: in.NgChar})
-				roomSend.room.changeTurn()
-				roomSend.room.applyNgChar(in.NgChar)
-				if checkEnd, _ := roomSend.room.checkEndGame(); checkEnd {
-					roomSend.room.gameEnd(roomSend.from.name)
+				r.ngChars = append(r.ngChars, NgChar{Name: send.from.name, Char: in.NgChar})
+				r.changeTurn()
+				r.applyNgChar(in.NgChar)
+				if checkEnd, _ := r.checkEndGame(); checkEnd {
+					r.gameEnd(send.from.name)
 				}
-				out, err := createOutbound(resultOK, roomSend.room)
+				out, err := createOutbound(resultOK, r)
 				if err != nil {
 					continue
 				}
-				for _, client := range roomSend.room.clients {
+				for _, client := range r.clients {
 					client.send <- out
 				}
+			default:
+				log.Printf(send.from.name + "'s message is unknown")
 			}
 		}
 	}
@@ -185,6 +194,7 @@ func (h *wsHandler) run() {
 func (h *wsHandler) createRoom() *Room {
 	room := NewRoom()
 	h.rooms[room] = true
+	go room.run()
 
 	return room
 }

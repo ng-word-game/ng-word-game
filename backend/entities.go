@@ -56,12 +56,16 @@ func (ws WordState) applyNgchar(char string) {
 type Room struct {
 	available bool
 	clients Clients
-	send chan []byte
 	gameState int
 	thema string
 	nextClientIdx int
+	nextClientName string
 	ngChars []NgChar
 	winner string
+	send chan struct{
+		from *Client
+		body []byte
+	}
 }
 
 type Rooms map[*Room]bool
@@ -96,14 +100,18 @@ func (c Clients) values() []*Client {
 
 func NewRoom() *Room {
 	return &Room{
-		available:     true,
-		clients:       map[string]*Client{},
-		send:          make(chan []byte),
-		gameState:     Initial,
-		thema:         themas[rand.Intn(len(themas))],
-		nextClientIdx: 0,
-		ngChars: []NgChar{},
-		winner: "",
+		available:      true,
+		clients:        map[string]*Client{},
+		gameState:      Initial,
+		thema:          themas[rand.Intn(len(themas))],
+		nextClientIdx:  0,
+		nextClientName: "",
+		ngChars:        []NgChar{},
+		winner:         "",
+		send: make(chan struct {
+			from *Client
+			body []byte
+		}),
 	}
 }
 
@@ -154,7 +162,8 @@ func (r *Room) changeTurn() {
 	} else {
 		r.nextClientIdx = 0
 	}
-	log.Printf("change turn to " + r.clients.values()[r.nextClientIdx].name)
+	r.nextClientName = r.clients.values()[r.nextClientIdx].name
+	log.Printf("change turn to " + r.nextClientName)
 }
 
 func (r *Room) applyNgChar(ngChar string) {
@@ -229,7 +238,7 @@ func (c *Client) read() {
 	}()
 	for {
 		if _, msg, err := c.conn.ReadMessage(); err == nil {
-			c.wsHandler.roomSend <- struct{from *Client; room *Room; body []byte}{from: c, room: c.room, body: msg}
+			c.room.send <- struct{from *Client; body []byte}{from: c, body: msg}
 		} else {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
