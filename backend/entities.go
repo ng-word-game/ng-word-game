@@ -127,6 +127,7 @@ func (r *Room) join(client *Client) {
 
 func (r *Room) gameStart() {
 	log.Printf("Game Start")
+	r.nextClientName = r.clients.values()[r.nextClientIdx].name
 	r.gameState = GameStart
 	r.nextClientIdx = 0
 }
@@ -202,8 +203,7 @@ func (r *Room) gameStop() {
 }
 
 func (c *Client) write() {
-	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-	ticker := time.NewTicker(pingPeriod)
+	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 	defer func() {
 		c.conn.Close()
 	}()
@@ -218,18 +218,14 @@ func (c *Client) write() {
 				log.Println(err)
 				return
 			}
-		case <- ticker.C:
-			if err := c.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				return
-			}
 		}
 	}
 }
 
 func (c *Client) read() {
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	// c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	// c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	defer func() {
 		log.Println(c.name, " leave")

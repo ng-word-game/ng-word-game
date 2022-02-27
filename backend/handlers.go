@@ -54,7 +54,7 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 		Users:     clientNames,
 		Words:     words,
 		WordState: clientWordStates,
-		NextTurn:  room.clients.values()[room.nextClientIdx].name,
+		NextTurn:  room.nextClientName,
 		Winner:    room.winner,
 		NgChars:   room.ngChars,
 	})
