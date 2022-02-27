@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math/rand"
 	"reflect"
 	"strings"
 	"time"
@@ -27,7 +28,7 @@ const (
 
 var roomMaxPlayer int = 2
 
-var themas []string = []string{"遊園地", "新宿", "渋谷"}
+var themas []string = []string{"動物", "新宿", "渋谷", "お菓子", "バイト"}
 
 const (
 	Initial = iota
@@ -99,7 +100,7 @@ func NewRoom() *Room {
 		clients:       map[string]*Client{},
 		send:          make(chan []byte),
 		gameState:     Initial,
-		thema:         themas[0],
+		thema:         themas[rand.Intn(len(themas))],
 		nextClientIdx: 0,
 		ngChars: []NgChar{},
 		winner: "",
