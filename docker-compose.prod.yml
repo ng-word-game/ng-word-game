@@ -10,15 +10,13 @@ services:
     volumes:
       - ./backend:/go/src/github.com/kikils/go-websocket
 
-  frontend:
+  nginx:
       build: 
-        context: ./frontend
-        dockerfile: Dockerfile.prod
+        context: ./nginx
+        dockerfile: Dockerfile
       ports:
         - "80:80"
       stdin_open: true
       tty: true
-      environment:
-        - CHOKIDAR_USEPOLLING=true
       volumes:
-        - ./frontend/src:/src
+        - ./nginx/src:/src
