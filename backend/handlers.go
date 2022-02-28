@@ -29,7 +29,10 @@ type outbound struct {
 	Result int `json:"result"`
 	GameState int `json:"game_state"`
 	Thema string `json:"thema"`
-	Users []string `json:"users"`
+	Users []struct{
+		Id string
+		Name string
+	} `json:"users"`
 	Words map[string]string `json:"wors"`
 	WordState map[string]WordState `json:"word_state"`
 	NextTurn string `json:"next_turn"`
@@ -38,20 +41,20 @@ type outbound struct {
 }
 
 func createOutbound(result int, room *Room) ([]byte, error) {
-	clientNames := []string{}
+	clientNames := []struct{Id string; Name string}{}
 	words := map[string]string{}
 	clientWordStates := map[string]WordState{}
 
 	for _, v := range room.clients.values() {
-		clientNames = append(clientNames, v.name)
+		clientNames = append(clientNames, struct{Id string; Name string}{Id: v.id, Name: v.name})
 		words[v.name] = v.Word
-		clientWordStates[v.name] = v.wordState
+		clientWordStates[v.id] = v.wordState
 	}
 
 	nextTurn := ""
 	if room.nextClientIdx > -1 {
 		log.Println(room.clientIds)
-		nextTurn = room.clients[room.clientIds[room.nextClientIdx]].name
+		nextTurn = room.clients[room.clientIds[room.nextClientIdx]].id
 	}
 	out, err := json.Marshal(outbound{
 		Result:    result,
@@ -171,7 +174,7 @@ func (r *Room) run() {
 				r.ngChars = append(r.ngChars, NgChar{Name: send.from.name, Char: in.NgChar})
 				r.applyNgChar(in.NgChar)
 				if checkEnd, _ := r.checkEndGame(); checkEnd {
-					r.gameEnd(send.from.name)
+					r.gameEnd(send.from)
 				}
 				out, err := createOutbound(resultOK, r)
 				if err != nil {

@@ -12,7 +12,7 @@
           接続が切断されました
         </h3>
         <h4 v-if="resultMode()" class="text-center">
-          {{ store.data.winner }}の勝利
+          {{ winner.Name }}の勝利
         </h4>
         <div class="d-flex flex-column justify-content-center">
           <div class="mx-auto mt-3">
@@ -44,7 +44,8 @@ export default defineComponent({
       store,
       resultMode: () => store.data.game_state === STATE.GameEnd,
       stopMode: () => store.data.game_state === STATE.GameStop,
-      goIndex: () => router.push({ name: 'index' })
+      goIndex: () => router.push({ name: 'index' }),
+      winner: store.data.users.filter(u => u.Id === store.data.winner)[0]
     }
   }
 })

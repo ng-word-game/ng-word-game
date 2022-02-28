@@ -68,10 +68,10 @@ func (r *Room) gameStart() {
 	r.nextClientIdx = 0
 }
 
-func (r *Room) gameEnd(name string) {
+func (r *Room) gameEnd(c *Client) {
 	log.Printf("Game End")
 	r.gameState = GameEnd
-	r.winner = name
+	r.winner = c.id
 }
 
 func (r *Room) checkEndGame() (bool, string) {

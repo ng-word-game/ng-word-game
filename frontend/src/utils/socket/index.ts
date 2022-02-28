@@ -3,7 +3,7 @@ export type InterfaceSocketData = {
     next_turn: string
     result: number
     thema: string
-    users: string[]
+    users: [{Id: string, Name: string}] | null
     winner: string
     word_state: { [key: string]: [{[key: string]: number}]}
     words: { [key: string]: string },

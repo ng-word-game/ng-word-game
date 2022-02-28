@@ -2,7 +2,7 @@
   <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
     <div class="mb-3">
       <p class="text-center" style="font-size: 1.2rem; font-weight: bold;">
-        {{ anotherUserName }}のワード
+        {{ anotherUser.Name }}のワード
       </p>
       <SquareCom v-if="anotherUserCharInfo" :chara-info="anotherUserCharInfo" />
     </div>
@@ -17,7 +17,7 @@
           </p>
         </div>
         <div class="my-2 d-flex justify-content-center">
-          <b-button v-if="nextTurn === userName" v-b-modal.modal-1 variant="outline-info" style="width: 80%;">
+          <b-button v-if="nextTurn === user.Id" v-b-modal.modal-1 variant="outline-info" style="width: 80%;">
             NGを選ぶ
           </b-button>
           <p v-else>
@@ -59,7 +59,7 @@
     </div>
     <div class="mt-3">
       <p class="text-center" style="font-size: 1.2rem; font-weight: bold;">
-        {{ userName }}のワード
+        {{ user.Name }}のワード
       </p>
       <SquareCom v-if="userCharInfo" :chara-info="userCharInfo" />
     </div>
@@ -96,8 +96,8 @@ export default defineComponent({
     if (!store.state.socket) {
       router.push({ name: 'index' })
     }
-    const userName = store.state.name
-    const anotherUserName = store.data.users.filter(u => u !== userName)[0]
+    const user = store.data.users.filter(u => u.Name === store.state.name)[0]
+    const anotherUser = store.data.users.filter(u => u.Name !== user.Name)[0]
     const ngChar = ref('')
     const ngCharValid = ref(true)
     const modalRef = ref()
@@ -137,14 +137,14 @@ export default defineComponent({
 
     const setCharInfos = () => {
       const usrCharInfo: {char: string, isOpen: boolean, isHide: boolean}[] = []
-      store.data.word_state[userName].forEach((item) => {
+      store.data.word_state[user.Id].forEach((item) => {
         for (const c in item) {
           usrCharInfo.push({ char: c, isOpen: item[c] === WORDSTATE.OpenedWord, isHide: false })
         }
       })
       userCharInfo.value = usrCharInfo
       const anUsrCharInfo: {char: string, isOpen: boolean, isHide: boolean}[] = []
-      store.data.word_state[anotherUserName].forEach((item) => {
+      store.data.word_state[anotherUser.Id].forEach((item) => {
         for (const c in item) {
           anUsrCharInfo.push({ char: c, isOpen: item[c] === WORDSTATE.OpenedWord, isHide: item[c] === WORDSTATE.HiddenWord })
         }
@@ -153,9 +153,9 @@ export default defineComponent({
     }
 
     return {
-      userName,
+      user,
       userCharInfo,
-      anotherUserName,
+      anotherUser,
       anotherUserCharInfo,
       nextTurn,
       ngCharas,

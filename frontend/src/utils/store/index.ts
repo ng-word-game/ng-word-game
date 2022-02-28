@@ -13,7 +13,7 @@ const initialData = reactive<InterfaceSocketData>({
   next_turn: '',
   result: 0,
   thema: '',
-  users: [],
+  users: null,
   winner: '',
   word_state: {},
   words: { '': '' },

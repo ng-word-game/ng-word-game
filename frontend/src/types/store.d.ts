@@ -11,7 +11,7 @@ export interface Store {
     readonly next_turn: string
     readonly result: number
     readonly thema: string
-    readonly users: string[]
+    readonly users: [{ Id: string, Name: string }]
     readonly winner: string
     readonly word_state: { [key: string]: [{[key: string]: number}]}
     readonly words: { [key: string]: string }
