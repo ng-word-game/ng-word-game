@@ -24,6 +24,7 @@ export enum STATE {
 export enum SET {
     SetWord,
     SetNgChar,
+    PING
 }
 
 export enum WORDSTATE {

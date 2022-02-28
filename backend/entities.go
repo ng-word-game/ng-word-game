@@ -236,6 +236,7 @@ func (c *Client) read() {
 
 	defer func() {
 		log.Println(c.name, " leave")
+		c.room.gameStop()
 		// c.wsHandler.leave <- c
 	}()
 	for {

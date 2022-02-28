@@ -74,6 +74,7 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 const (
 	setWord = iota
 	setNgChar = iota
+	PING = iota
 )
 
 type inbound struct {
@@ -109,7 +110,6 @@ func NewWshandler() *wsHandler {
 }
 
 func (h *wsHandler) run() {
-	log.Println("run handler goroutine: ", runtime.NumGoroutine())
 	defer func(){
 		log.Printf("close h.run()")
 		for r := range h.rooms {
@@ -208,8 +208,14 @@ func (r *Room) run() {
 				for _, client := range r.clients {
 					client.send <- out
 				}
-			default:
-				log.Printf(send.from.name + "'s message is unknown")
+			case PING:
+				out, err := createOutbound(resultOK, r)
+				if err != nil {
+					continue
+				}
+				send.from.send <- out
+		default:
+			log.Printf(send.from.name + "'s message is unknown")
 			}
 		}
 	}
@@ -250,6 +256,7 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.join <- client
 	defer func() {
 		log.Printf("close ServeHTTP(), この時点でh.closeされている")
+		log.Println("run handler goroutine: ", runtime.NumGoroutine())
 	}()
 	go client.write()
 	client.read()

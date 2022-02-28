@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, provide, inject, watch, ref, reactive, onUnmounted } from '@nuxtjs/composition-api'
+import { defineComponent, provide, inject, watch, ref, reactive, onUnmounted, onMounted } from '@nuxtjs/composition-api'
 import store, { key } from '../utils/store'
-import { STATE } from '../utils/socket'
+import { STATE, SET } from '../utils/socket'
 
 export default defineComponent({
   setup () {
@@ -18,15 +18,32 @@ export default defineComponent({
     }
     const state = ref(injectedStore.state)
     const data = reactive(injectedStore.data)
+    let once = true
+    const pingFunc = () => {
+      return setInterval(() => {
+        if (injectedStore.state.socket !== null) {
+          injectedStore.state.socket.send(JSON.stringify({ type: SET.PING }))
+        }
+      }, 10000)
+    }
     // const gameState = ref(injectedStore.state.data.game_state)
     watch(data, () => {
       if (injectedStore.state.socket === null) {
+        clearInterval(pingFunc())
         return
       }
       if (data.game_state === STATE.GameStop || data.game_state === STATE.GameEnd) {
         injectedStore.state.socket.close()
       }
     }, { deep: true })
+
+    onMounted(() => {
+      if (once) {
+        once = false
+        console.log('here')
+        pingFunc()
+      }
+    })
 
     onUnmounted(() => {
       if (state.value.socket) {
