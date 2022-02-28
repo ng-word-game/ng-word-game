@@ -59,7 +59,7 @@ type Room struct {
 	gameState int
 	thema string
 	nextClientIdx int
-	nextClientName string
+	clientIds []string
 	ngChars []NgChar
 	winner string
 	send chan struct{
@@ -102,14 +102,14 @@ func (c Clients) values() []*Client {
 
 func NewRoom() *Room {
 	return &Room{
-		available:      true,
-		clients:        map[string]*Client{},
-		gameState:      Initial,
-		thema:          themas[rand.Intn(len(themas))],
-		nextClientIdx:  0,
-		nextClientName: "",
-		ngChars:        []NgChar{},
-		winner:         "",
+		available:     true,
+		clients:       map[string]*Client{},
+		gameState:     Initial,
+		thema:         themas[rand.Intn(len(themas))],
+		nextClientIdx: -1,
+		clientIds:     []string{},
+		ngChars:       []NgChar{},
+		winner:        "",
 		send: make(chan struct {
 			from *Client
 			body []byte
@@ -122,6 +122,7 @@ func (r *Room) join(client *Client) {
 	log.Printf("%v join room", client.name)
 	client.room = r
 	r.clients[client.id] = client
+	r.clientIds = append(r.clientIds, client.id)
 	if len(r.clients) >= roomMaxPlayer {
 		r.available = false
 		r.gameState = PlayerFilled
@@ -130,7 +131,6 @@ func (r *Room) join(client *Client) {
 
 func (r *Room) gameStart() {
 	log.Printf("Game Start")
-	r.nextClientName = r.clients.values()[r.nextClientIdx].name
 	r.gameState = GameStart
 	r.nextClientIdx = 0
 }
@@ -161,13 +161,14 @@ func (r *Room) checkEndGame() (bool, string) {
 }
 
 func (r *Room) changeTurn() {
+	log.Println("now player ", r.nextClientIdx)
 	if r.nextClientIdx + 1 < roomMaxPlayer {
-		r.nextClientIdx += 1
+		r.nextClientIdx++
 	} else {
 		r.nextClientIdx = 0
 	}
-	r.nextClientName = r.clients.values()[r.nextClientIdx].name
-	log.Printf("change turn to " + r.nextClientName)
+	log.Println("next player ", r.nextClientIdx)
+	log.Printf("change turn to " + r.clientIds[r.nextClientIdx])
 }
 
 func (r *Room) applyNgChar(ngChar string) {

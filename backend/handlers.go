@@ -48,6 +48,11 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 		clientWordStates[v.name] = v.wordState
 	}
 
+	nextTurn := ""
+	if room.nextClientIdx > -1 {
+		log.Println(room.clientIds)
+		nextTurn = room.clients[room.clientIds[room.nextClientIdx]].name
+	}
 	out, err := json.Marshal(outbound{
 		Result:    result,
 		GameState: room.gameState,
@@ -55,7 +60,7 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 		Users:     clientNames,
 		Words:     words,
 		WordState: clientWordStates,
-		NextTurn:  room.nextClientName,
+		NextTurn:  nextTurn,
 		Winner:    room.winner,
 		NgChars:   room.ngChars,
 	})
@@ -186,12 +191,12 @@ func (r *Room) run() {
 				if r.gameState != GameStart {
 					continue
 				}
+				r.changeTurn()
 				// if r.clients.values()[r.nextClientIdx] != send.from {
 				// 	continue
 				// }
 				log.Printf("ngChar: " + in.NgChar)
 				r.ngChars = append(r.ngChars, NgChar{Name: send.from.name, Char: in.NgChar})
-				r.changeTurn()
 				r.applyNgChar(in.NgChar)
 				if checkEnd, _ := r.checkEndGame(); checkEnd {
 					r.gameEnd(send.from.name)
