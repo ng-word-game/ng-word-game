@@ -262,13 +262,13 @@ func TestSetWord(t *testing.T) {
 				defer s.Close()
 				defer ws.Close()
 
+				receiveWSMessage(t, ws,1)
 				sendMessage(t, ws, inbound{
 					Type: setWord,
 					Word: v.word,
 					NgChar: "",
 				})
 				replys := receiveWSMessage(t, ws,1)
-				log.Println(replys)
 				reply := replys[0]
 				if !(reflect.DeepEqual(reply.Users, tt.reply.Users) && reflect.DeepEqual(reply.Words, tt.reply.Words)) {
 					t.Fatalf("Expexted '%v', got '%v'", tt.reply.Words, reply.Words)
@@ -312,18 +312,21 @@ func TestStartGame(t *testing.T) {
 				defer s.Close()
 				defer ws.Close()
 
+				receiveWSMessage(t, ws,1)
 				sendMessage(t, ws, inbound{
 					Word: v.word,
 				})
+				receiveWSMessage(t, ws,1)
 			}
 			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userName)
 			defer s.Close()
 			defer ws.Close()
+			receiveWSMessage(t, ws,1)
 			sendMessage(t, ws, inbound{
 				Word: tt.users[len(tt.users)-1].word,
 			})
-			replys := receiveWSMessage(t, ws, 3)
-			reply := replys[2]
+			replys := receiveWSMessage(t, ws, 2)
+			reply := replys[1]
 			if !(reply.GameState == tt.reply.GameState && reflect.DeepEqual(reply.Words, tt.reply.Words)) {
 				t.Fatalf("Expexted '%v', got '%v'", tt.reply, reply)
 			}
