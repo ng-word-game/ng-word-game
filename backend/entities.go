@@ -67,6 +67,7 @@ type Room struct {
 		body []byte
 	}
 	close chan struct{}
+	leave chan *Client
 }
 
 type Rooms map[*Room]bool
@@ -115,6 +116,7 @@ func NewRoom() *Room {
 			body []byte
 		}),
 		close: make(chan struct{}),
+		leave: make(chan *Client),
 	}
 }
 
@@ -208,9 +210,9 @@ func (r *Room) gameStop() {
 
 func (c *Client) write() {
 	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-	// defer func() {
-	// 	c.conn.Close()
-	// }()
+	defer func() {
+		c.room.leave <- c
+	}()
 	for {
 		select {
 		case <- c.close:
@@ -237,7 +239,7 @@ func (c *Client) read() {
 	defer func() {
 		log.Println(c.name, " leave")
 		c.room.gameStop()
-		// c.wsHandler.leave <- c
+		close(c.close)
 	}()
 	for {
 		if _, msg, err := c.conn.ReadMessage(); err == nil {

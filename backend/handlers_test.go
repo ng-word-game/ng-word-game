@@ -140,23 +140,28 @@ func TestGoRoutine(t *testing.T) {
 	for _, tt := range tcs {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewWshandler()
-			servers := []*httptest.Server{}
-			connections := []*websocket.Conn{}
-			defer func () {
-				log.Printf("handler close")
-				close(h.close)
-				for _, s := range servers {
-					s.Close()
-				}
-				for _, ws := range connections {
-					ws.Close()
-				}
-			}()
+			// servers := []*httptest.Server{}
+			// connections := []*websocket.Conn{}
+			// defer func () {
+			// 	log.Printf("handler close")
+			// 	// close(h.close)
+			// 	for _, s := range servers {
+			// 		s.Close()
+			// 	}
+			// 	for _, ws := range connections {
+			// 		ws.Close()
+			// 	}
+			// }()
+			defer close(h.close)
 			go h.run()
 			for _, v := range tt.users {
 				s, ws := newWSServer(t, h, v.userName)
-				servers = append(servers, s)
-				connections = append(connections, ws)
+				defer func(){
+					s.Close()
+					ws.Close()
+				}()
+				// servers = append(servers, s)
+				// connections = append(connections, ws)
 				time.Sleep(time.Second * 1)
 			}
 			log.Println(h.rooms)

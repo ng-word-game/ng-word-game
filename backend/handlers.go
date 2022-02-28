@@ -112,13 +112,13 @@ func NewWshandler() *wsHandler {
 func (h *wsHandler) run() {
 	defer func(){
 		log.Printf("close h.run()")
-		for r := range h.rooms {
-			for _, c := range r.clients.values() {
-				close(c.close)
-				c.conn.Close()
-			}
-			close(r.close)
-		}
+		// for r := range h.rooms {
+		// 	for _, c := range r.clients.values() {
+		// 		close(c.close)
+		// 		c.conn.Close()
+		// 	}
+		// 	close(r.close)
+		// }
 	}()
 
 	for {
@@ -158,9 +158,12 @@ func (h *wsHandler) run() {
 func (r *Room) run() {
 	for {
 		select {
-		case <- r.close:
-			log.Printf("close room")
-			return
+		case client := <- r.leave:
+			delete(r.clients, client.id)
+			if len(r.clients) == 0 {
+				log.Println("close room, goroutine: ",  runtime.NumGoroutine())
+				return
+			}
 		case send := <- r.send:
 			var in inbound
 			err := json.Unmarshal(send.body, &in)
@@ -255,7 +258,7 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	client := h.NewClient(randomString(10), r.FormValue("name"), conn)
 	h.join <- client
 	defer func() {
-		log.Printf("close ServeHTTP(), この時点でh.closeされている")
+		log.Printf("close ServeHTTP()")
 		log.Println("run handler goroutine: ", runtime.NumGoroutine())
 	}()
 	go client.write()
