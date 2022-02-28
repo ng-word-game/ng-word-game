@@ -68,7 +68,8 @@
         <h3>NG文字を入力しよう</h3>
       </div>
       <input v-model="ngChar" type="text" class="form-control" placeholder="">
-      <b-button class="mt-2" variant="outline-info" block @click="registerNgChar">
+      <div v-if="ngCharValid" class="form-text" style="color: red;">ひらがな1文字のみ入力できます</div>
+      <b-button :disabled="ngCharValid" class="mt-2" variant="outline-info" block @click="registerNgChar">
         決定
       </b-button>
     </b-modal>
@@ -97,6 +98,7 @@ export default defineComponent({
     const userName = store.state.name
     const anotherUserName = store.data.users.filter(u => u !== userName)[0]
     const ngChar = ref('')
+    const ngCharValid = ref(true)
     const modalRef = ref()
     const data = reactive(store.data)
     const nextTurn = ref(store.data.next_turn)
@@ -122,6 +124,10 @@ export default defineComponent({
       ngCharas.value = data.ng_chars
       console.log(ngCharas)
     }, { deep: true })
+
+    watch(ngChar, () => {
+      ngCharValid.value = ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
+    })
     // const charaInfo: CharaInfoInterface[] = [{
     //   char: 'こ',
     //   isOpen: false,
@@ -153,6 +159,7 @@ export default defineComponent({
       nextTurn,
       ngCharas,
       ngChar,
+      ngCharValid,
       modalRef,
       registerNgChar,
       thema

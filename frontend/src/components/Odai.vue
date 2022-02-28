@@ -9,9 +9,14 @@
           {{ thema }}
         </h1>
         <div class="form-group d-flex flex-column justify-content-center mt-4">
-          <input v-model="wordRef" type="text" class="form-control" placeholder="言葉を書く">
+          <span class="form-text">ひらがなのみ</span>
+          <input v-model="wordRef" type="text" class="form-control" placeholder="ことばをかく">
+          <div v-if="wordValid" class="form-text" style="color: red;">ひらがなのみを使用してください</div>
           <div class="mx-auto mt-3">
-            <button v-if="!waiting" type="submit" class="btn btn-outline-info" @click="registered">
+            <button v-if="!waiting && wordValid" disabled type="submit" class="btn btn-outline-info" @click="registered">
+              決定
+            </button>
+            <button v-else-if="!waiting" type="submit" class="btn btn-outline-info" @click="registered">
               決定
             </button>
             <p v-else>
@@ -34,6 +39,7 @@ export default defineComponent({
   setup () {
     const store = inject(key)
     const wordRef = ref<string>('')
+    const wordValid = ref(false)
     const router = useRouter()
     const thema = ref('')
     const waiting = ref(false)
@@ -54,6 +60,9 @@ export default defineComponent({
         router.push({ name: 'play' })
       }
     }, { deep: true })
+    watch(wordRef, () => {
+      wordValid.value = wordRef.value.match(/^[ぁ-んー　]*$/) == null
+    })
     const registered = () => {
       store.setMyWord(wordRef.value)
       waiting.value = true
@@ -65,6 +74,7 @@ export default defineComponent({
 
     return {
       wordRef,
+      wordValid,
       thema,
       registered,
       waiting
