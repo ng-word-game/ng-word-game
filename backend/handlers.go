@@ -80,6 +80,7 @@ type wsHandler struct {
 	rooms Rooms
 	join chan *Client
 	leave chan *Client
+	close chan struct{}
 	roomSend chan struct{
 		from *Client
 		room *Room
@@ -92,6 +93,7 @@ func NewWshandler() *wsHandler {
 		rooms: map[*Room]bool{},
 		join:  make(chan *Client),
 		leave: make(chan *Client),
+		close: make(chan struct{}),
 		roomSend: make(chan struct {
 			from *Client
 			room *Room
@@ -130,6 +132,13 @@ func (h *wsHandler) run() {
 				client.send <- out
 			}
 			delete(h.rooms, client.room)
+			defer func(){
+				close(client.close)
+				close(client.room.close)
+				client.conn.Close()
+			}()
+		case <- h.close:
+			return
 		}
 	}
 }
@@ -137,6 +146,8 @@ func (h *wsHandler) run() {
 func (r *Room) run() {
 	for {
 		select {
+		case <- r.close:
+			return
 		case send := <- r.send:
 			var in inbound
 			err := json.Unmarshal(send.body, &in)
@@ -209,6 +220,7 @@ func (h *wsHandler) NewClient(id string, name string, c *websocket.Conn) *Client
 		Word:      "",
 		conn:      c,
 		send:      make(chan []byte),
+		close:     make(chan struct{}),
 		wordState: []map[string]int{},
 	}
 }
@@ -224,7 +236,7 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	client := h.NewClient(randomString(10), r.FormValue("name"), conn)
 	h.join <- client
 	defer func() {
-		conn.Close()
+		log.Printf("close ServeHTTP(), この時点でh.closeされている")
 	}()
 	go client.write()
 	client.read()

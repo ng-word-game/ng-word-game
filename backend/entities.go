@@ -66,6 +66,7 @@ type Room struct {
 		from *Client
 		body []byte
 	}
+	close chan struct{}
 }
 
 type Rooms map[*Room]bool
@@ -87,6 +88,7 @@ type Client struct {
 	Word string
 	conn *websocket.Conn
 	send chan []byte
+	close chan struct{}
 	wordState WordState
 }
 
@@ -112,6 +114,7 @@ func NewRoom() *Room {
 			from *Client
 			body []byte
 		}),
+		close: make(chan struct{}),
 	}
 }
 
@@ -204,11 +207,14 @@ func (r *Room) gameStop() {
 
 func (c *Client) write() {
 	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-	defer func() {
-		c.conn.Close()
-	}()
+	// defer func() {
+	// 	c.conn.Close()
+	// }()
 	for {
 		select {
+		case <- c.close:
+			log.Printf("close client.write()")
+			return
 		case msg, ok := <- c.send:
 			if !ok {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
@@ -230,7 +236,6 @@ func (c *Client) read() {
 	defer func() {
 		log.Println(c.name, " leave")
 		c.wsHandler.leave <- c
-		c.conn.Close()
 	}()
 	for {
 		if _, msg, err := c.conn.ReadMessage(); err == nil {

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"go.uber.org/goleak"
 )
 
 func httpToWS(t *testing.T, u string) string {
@@ -93,7 +94,48 @@ func newWSServer(t *testing.T, h http.Handler, userName string) (*httptest.Serve
 // 	}
 // }
 
+func TestGoRoutine(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	tcs := []struct {
+		name string
+		users []struct {
+			userName string
+		}
+		roomCount int
+	}{
+		{
+			name: "1 user",
+			users: []struct {
+				userName string
+			}{{userName: "usr1"},},
+			roomCount: 1,
+		},
+	}
+
+	for _, tt := range tcs {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewWshandler()
+			defer func () {
+				log.Printf("handler close")
+				close(h.close)
+			}()
+			go h.run()
+			for _, v := range tt.users {
+				s, ws := newWSServer(t, h, v.userName)
+				defer s.Close()
+				defer ws.Close()
+				time.Sleep(time.Second * 1)
+			}
+			log.Println(h.rooms)
+			if len(h.rooms) != tt.roomCount {
+				t.Fatalf("Expexted '%v', got '%v'", tt.roomCount, len(h.rooms))
+			}
+		})
+	}
+}
+
 func TestCreateRoom(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	tcs := []struct {
 		name string
 		users []struct {
@@ -138,6 +180,7 @@ func TestCreateRoom(t *testing.T) {
 	for _, tt := range tcs {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewWshandler()
+			defer close(h.close)
 			go h.run()
 			for _, v := range tt.users {
 				s, ws := newWSServer(t, h, v.userName)
