@@ -86,39 +86,20 @@ type inbound struct {
 type wsHandler struct {
 	rooms Rooms
 	join chan *Client
-	leave chan *Client
 	close chan struct{}
-	roomSend chan struct{
-		from *Client
-		room *Room
-		body []byte
-	}
 }
 
 func NewWshandler() *wsHandler {
 	return &wsHandler{
 		rooms: map[*Room]bool{},
 		join:  make(chan *Client),
-		leave: make(chan *Client),
 		close: make(chan struct{}),
-		roomSend: make(chan struct {
-			from *Client
-			room *Room
-			body []byte
-		}),
 	}
 }
 
 func (h *wsHandler) run() {
 	defer func(){
 		log.Printf("close h.run()")
-		// for r := range h.rooms {
-		// 	for _, c := range r.clients.values() {
-		// 		close(c.close)
-		// 		c.conn.Close()
-		// 	}
-		// 	close(r.close)
-		// }
 	}()
 
 	for {
@@ -137,18 +118,6 @@ func (h *wsHandler) run() {
 			for _, client := range room.clients {
 				client.send <- out
 			}
-		case client := <- h.leave:
-			room := client.room
-			room.gameStop()
-			delete(room.clients, client.id)
-			out, err := json.Marshal(outbound{GameState: GameStop})
-			if err != nil {
-				continue
-			}
-			for _, client := range room.clients {
-				client.send <- out
-			}
-			delete(h.rooms, client.room)
 		case <- h.close:
 			return
 		}
