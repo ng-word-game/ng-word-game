@@ -48,7 +48,7 @@ export default defineComponent({
     }
     const data = reactive(store.data)
     if (!store.state.socket) {
-      throw new Error('websocket undefined')
+      router.push({ name: 'index' })
     }
     onMounted(() => {
       thema.value = store.data.thema

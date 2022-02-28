@@ -77,7 +77,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref, watch, onMounted, reactive } from '@nuxtjs/composition-api'
+import { defineComponent, inject, ref, watch, onMounted, reactive, useRouter } from '@nuxtjs/composition-api'
 import { key } from '../utils/store'
 import { SET, WORDSTATE } from '../utils/socket'
 import SquareCom from './parts/Square.vue'
@@ -92,8 +92,9 @@ export default defineComponent({
     if (!store) {
       throw new Error('store undefined')
     }
+    const router = useRouter()
     if (!store.state.socket) {
-      throw new Error('socket undefined')
+      router.push({ name: 'index' })
     }
     const userName = store.state.name
     const anotherUserName = store.data.users.filter(u => u !== userName)[0]
