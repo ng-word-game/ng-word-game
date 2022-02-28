@@ -110,20 +110,53 @@ func TestGoRoutine(t *testing.T) {
 			}{{userName: "usr1"},},
 			roomCount: 1,
 		},
+		{
+			name: "2 users",
+			users: []struct {
+				userName string
+			}{{userName: "usr1"}, {userName: "usr2"}},
+			roomCount: 1,
+		},
+		{
+			name: "3 users",
+			users: []struct {
+				userName string
+			}{{userName: "usr1"}, {userName: "usr2"}, {userName: "usr3"}},
+			roomCount: 2,
+		},
+		{
+			name: "10 users",
+			users: []struct {
+				userName string
+			}{{userName: "usr1"}, {userName: "usr2"},
+			{userName: "usr3"}, {userName: "usr4"},
+			{userName: "usr5"}, {userName: "usr6"},
+			{userName: "usr7"}, {userName: "usr8"},
+			{userName: "usr9"}, {userName: "usr10"}},
+			roomCount: 5,
+		},
 	}
 
 	for _, tt := range tcs {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewWshandler()
+			servers := []*httptest.Server{}
+			connections := []*websocket.Conn{}
 			defer func () {
 				log.Printf("handler close")
 				close(h.close)
+				for _, s := range servers {
+					s.Close()
+				}
+				for _, ws := range connections {
+					ws.Close()
+				}
 			}()
 			go h.run()
 			for _, v := range tt.users {
 				s, ws := newWSServer(t, h, v.userName)
-				defer s.Close()
-				defer ws.Close()
+				servers = append(servers, s)
+				connections = append(connections, ws)
 				time.Sleep(time.Second * 1)
 			}
 			log.Println(h.rooms)

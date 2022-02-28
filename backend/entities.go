@@ -235,7 +235,7 @@ func (c *Client) read() {
 
 	defer func() {
 		log.Println(c.name, " leave")
-		c.wsHandler.leave <- c
+		// c.wsHandler.leave <- c
 	}()
 	for {
 		if _, msg, err := c.conn.ReadMessage(); err == nil {

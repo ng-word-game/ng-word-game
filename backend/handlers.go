@@ -104,6 +104,17 @@ func NewWshandler() *wsHandler {
 
 func (h *wsHandler) run() {
 	log.Println("run", &h)
+	defer func(){
+		log.Printf("close h.run()")
+		for r := range h.rooms {
+			for _, c := range r.clients.values() {
+				close(c.close)
+				c.conn.Close()
+			}
+			close(r.close)
+		}
+	}()
+
 	for {
 		select {
 		case client := <-h.join:
@@ -132,11 +143,6 @@ func (h *wsHandler) run() {
 				client.send <- out
 			}
 			delete(h.rooms, client.room)
-			defer func(){
-				close(client.close)
-				close(client.room.close)
-				client.conn.Close()
-			}()
 		case <- h.close:
 			return
 		}
@@ -147,6 +153,7 @@ func (r *Room) run() {
 	for {
 		select {
 		case <- r.close:
+			log.Printf("close room")
 			return
 		case send := <- r.send:
 			var in inbound
