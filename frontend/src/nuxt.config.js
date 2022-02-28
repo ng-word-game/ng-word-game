@@ -49,5 +49,8 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+  },
+  publicRuntimeConfig: {
+    wsURL: process.env.WS_URL || 'ws://0.0.0.:443'
   }
 }

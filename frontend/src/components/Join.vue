@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, reactive, ref, useRouter, watch } from '@nuxtjs/composition-api'
+import { defineComponent, inject, reactive, ref, useContext, useRouter, watch } from '@nuxtjs/composition-api'
 import { key } from '../utils/store'
 import { STATE } from '../utils/socket'
 import { blobToJson } from '../utils/blobReader'
@@ -30,6 +30,7 @@ import { blobToJson } from '../utils/blobReader'
 export default defineComponent({
   name: 'PlayerJoin',
   setup () {
+    const { app } = useContext()
     const store = inject(key)
     const name = ref<string>('')
     const router = useRouter()
@@ -55,7 +56,7 @@ export default defineComponent({
     const registered = () => {
       store.setName(name.value)
       waiting.value = true
-      const socket = new WebSocket(`ws://${location.hostname}:443/?name=` + name.value)
+      const socket = new WebSocket(`${app.$config.wsURL}/?name=` + name.value)
       console.log(socket)
       socket.addEventListener('open', () => {
         console.log('open')
