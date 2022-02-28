@@ -264,6 +264,7 @@ func sendMessage(t *testing.T, ws *websocket.Conn, msg inbound) {
 }
 
 func TestFillPlayerMsg(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	tcs := []struct {
 		name string
 		users []struct {
@@ -285,11 +286,23 @@ func TestFillPlayerMsg(t *testing.T) {
 	for _, tt := range tcs {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewWshandler()
+			servers := []*httptest.Server{}
+			connections := []*websocket.Conn{}
+			defer func () {
+				log.Printf("handler close")
+				close(h.close)
+				for _, s := range servers {
+					s.Close()
+				}
+				for _, ws := range connections {
+					ws.Close()
+				}
+			}()
 			go h.run()
 			for _, v := range tt.users {
 				s, ws := newWSServer(t, h, v.userName)
-				defer s.Close()
-				defer ws.Close()
+				servers = append(servers, s)
+				connections = append(connections, ws)
 
 				if v.userName == "usr1" {
 					continue
@@ -305,6 +318,7 @@ func TestFillPlayerMsg(t *testing.T) {
 }
 
 func TestSetWord(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	tcs := []struct {
 		name string
 		users []struct {
@@ -332,11 +346,23 @@ func TestSetWord(t *testing.T) {
 	for _, tt := range tcs {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewWshandler()
+			servers := []*httptest.Server{}
+			connections := []*websocket.Conn{}
+			defer func () {
+				log.Printf("handler close")
+				close(h.close)
+				for _, s := range servers {
+					s.Close()
+				}
+				for _, ws := range connections {
+					ws.Close()
+				}
+			}()
 			go h.run()
 			for _, v := range tt.users {
 				s, ws := newWSServer(t, h, v.userName)
-				defer s.Close()
-				defer ws.Close()
+				servers = append(servers, s)
+				connections = append(connections, ws)
 
 				receiveWSMessage(t, ws,1)
 				sendMessage(t, ws, inbound{
@@ -355,6 +381,7 @@ func TestSetWord(t *testing.T) {
 }
 
 func TestStartGame(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	tcs := []struct {
 		name string
 		users []struct {
@@ -382,11 +409,23 @@ func TestStartGame(t *testing.T) {
 	for _, tt := range tcs {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewWshandler()
+			servers := []*httptest.Server{}
+			connections := []*websocket.Conn{}
+			defer func () {
+				log.Printf("handler close")
+				close(h.close)
+				for _, s := range servers {
+					s.Close()
+				}
+				for _, ws := range connections {
+					ws.Close()
+				}
+			}()
 			go h.run()
 			for _, v := range tt.users[:len(tt.users)-1] {
 				s, ws := newWSServer(t, h, v.userName)
-				defer s.Close()
-				defer ws.Close()
+				servers = append(servers, s)
+				connections = append(connections, ws)
 
 				receiveWSMessage(t, ws,1)
 				sendMessage(t, ws, inbound{
@@ -395,8 +434,8 @@ func TestStartGame(t *testing.T) {
 				receiveWSMessage(t, ws,1)
 			}
 			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userName)
-			defer s.Close()
-			defer ws.Close()
+			servers = append(servers, s)
+			connections = append(connections, ws)
 			receiveWSMessage(t, ws,1)
 			sendMessage(t, ws, inbound{
 				Word: tt.users[len(tt.users)-1].word,

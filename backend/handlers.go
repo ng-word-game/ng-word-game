@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"runtime"
 
 	"github.com/gorilla/websocket"
 )
@@ -103,7 +104,7 @@ func NewWshandler() *wsHandler {
 }
 
 func (h *wsHandler) run() {
-	log.Println("run", &h)
+	log.Println("run handler goroutine: ", runtime.NumGoroutine())
 	defer func(){
 		log.Printf("close h.run()")
 		for r := range h.rooms {
