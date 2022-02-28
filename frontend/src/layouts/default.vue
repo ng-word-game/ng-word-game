@@ -5,10 +5,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, provide, inject, watch, ref, reactive, useRouter } from '@nuxtjs/composition-api'
+import { defineComponent, provide, inject, watch, ref, reactive, onUnmounted } from '@nuxtjs/composition-api'
 import store, { key } from '../utils/store'
 import { STATE } from '../utils/socket'
-import { blobToJson } from '../utils/blobReader'
 
 export default defineComponent({
   setup () {
@@ -19,25 +18,22 @@ export default defineComponent({
     }
     const state = ref(injectedStore.state)
     const data = reactive(injectedStore.data)
-    const once = ref(0)
-    const router = useRouter()
     // const gameState = ref(injectedStore.state.data.game_state)
-    watch(state, () => {
-      if (state.value.socket && once.value === 0) {
-        state.value.socket.addEventListener('message', (e) => {
-          blobToJson(e.data).then((blobText) => {
-            console.log(blobText)
-            injectedStore.setData(blobText)
-          })
-        })
-        once.value = 1
-      }
-    }, { deep: true })
     watch(data, () => {
+      if (injectedStore.state.socket === null) {
+        return
+      }
       if (data.game_state === STATE.GameStop || data.game_state === STATE.GameEnd) {
-        router.push({ name: 'result' })
+        injectedStore.state.socket.close()
       }
     }, { deep: true })
+
+    onUnmounted(() => {
+      if (state.value.socket) {
+        state.value.socket.close()
+      }
+    })
+
     return {}
   }
 })

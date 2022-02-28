@@ -22,9 +22,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onMounted, reactive, ref, useRouter, watch } from '@nuxtjs/composition-api'
+import { defineComponent, inject, reactive, ref, useRouter, watch } from '@nuxtjs/composition-api'
 import { key } from '../utils/store'
 import { STATE } from '../utils/socket'
+import { blobToJson } from '../utils/blobReader'
 
 export default defineComponent({
   name: 'PlayerJoin',
@@ -46,15 +47,10 @@ export default defineComponent({
       }
     }, { deep: true })
 
-    onMounted(() => {
-      if (store.state.socket) {
-        store.state.socket.addEventListener('close', () => {
-          store.setSocket(null)
-          console.log('close')
-        })
-        store.state.socket.close()
-      }
-    })
+    function handleCloseEvent () {
+      console.log('close')
+      router.push({ name: 'result' })
+    }
 
     const registered = () => {
       store.setName(name.value)
@@ -63,6 +59,13 @@ export default defineComponent({
       console.log(socket)
       socket.addEventListener('open', () => {
         console.log('open')
+        socket.addEventListener('message', (e) => {
+          blobToJson(e.data).then((blobText) => {
+            console.log(blobText)
+            store.setData(blobText)
+          })
+        })
+        socket.addEventListener('close', handleCloseEvent, false)
         store.setSocket(socket)
       })
     }

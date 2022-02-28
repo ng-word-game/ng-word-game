@@ -107,6 +107,7 @@ export default defineComponent({
     const registerNgChar = () => {
       modalRef.value.hide()
       if (!store.state.socket) {
+        console.log('websocket is not found')
         return
       }
       store.state.socket.send(JSON.stringify({ type: SET.SetNgChar, ng_char: ngChar.value }))

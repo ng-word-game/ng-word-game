@@ -8,6 +8,9 @@
         <h3 v-else-if="stopMode()" class="card-title text-center">
           対戦相手が退出しました
         </h3>
+        <h3 v-else class="card-title text-center">
+          接続が切断されました
+        </h3>
         <h4 v-if="resultMode()" class="text-center">
           {{ store.data.winner }}の勝利
         </h4>
