@@ -114,6 +114,7 @@ export default defineComponent({
         return
       }
       store.state.socket.send(JSON.stringify({ type: SET.SetNgChar, ng_char: ngChar.value }))
+      ngChar.value = ''
     }
 
     onMounted(() => {
