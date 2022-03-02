@@ -3,7 +3,7 @@
     <div class="card" style="width: 50%;">
       <div class="card-body">
         <h5 class="card-title text-center">
-          ワードゲーム
+          NG単語ゲーム
         </h5>
         <div class="form-group d-flex flex-column justify-content-center">
           <input v-model="name" type="email" class="form-control" placeholder="ユーザー名">
