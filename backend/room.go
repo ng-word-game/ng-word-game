@@ -43,6 +43,7 @@ func (r Rooms) keys() []*Room {
 
 func NewRoom() *Room {
 	return &Room{
+		mux:           sync.RWMutex{},
 		available:     true,
 		clients:       map[string]*Client{},
 		gameState:     Initial,
