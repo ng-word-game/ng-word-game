@@ -52,7 +52,7 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 	}
 
 	nextTurn := ""
-	if room.nextClientIdx > -1 {
+	if 0 <= room.nextClientIdx && room.nextClientIdx < len(room.clients) {
 		log.Println(room.clientIds)
 		nextTurn = room.clients[room.clientIds[room.nextClientIdx]].id
 	}

@@ -5,9 +5,11 @@ import (
 	"log"
 	"math/rand"
 	"reflect"
+	"sync"
 )
 
 type Room struct {
+	mux sync.RWMutex
 	available bool
 	clients Clients
 	gameState int
@@ -21,6 +23,12 @@ type Room struct {
 		body []byte
 	}
 	leave chan *Client
+}
+
+func (r *Room) WithLockRoom(fn func()) {
+	r.mux.Lock()
+	fn()
+	defer r.mux.Unlock()
 }
 
 type Rooms map[*Room]bool
@@ -57,21 +65,27 @@ func (r *Room) join(client *Client) {
 	r.clients[client.id] = client
 	r.clientIds = append(r.clientIds, client.id)
 	if len(r.clients) >= roomMaxPlayer {
-		r.available = false
-		r.gameState = PlayerFilled
+		r.WithLockRoom(func() {
+			r.available = false
+			r.gameState = PlayerFilled
+		})
 	}
 }
 
 func (r *Room) gameStart() {
-	log.Printf("Game Start")
-	r.gameState = GameStart
-	r.nextClientIdx = 0
+	r.WithLockRoom(func() {
+		log.Printf("Game Start")
+		r.gameState = GameStart
+		r.nextClientIdx = 0
+	})
 }
 
 func (r *Room) gameEnd(c *Client) {
-	log.Printf("Game End")
-	r.gameState = GameEnd
-	r.winner = c.id
+	r.WithLockRoom(func() {
+		log.Printf("Game End")
+		r.gameState = GameEnd
+		r.winner = c.id
+	})
 }
 
 func (r *Room) checkEndGame() (bool, string) {
@@ -94,14 +108,13 @@ func (r *Room) checkEndGame() (bool, string) {
 }
 
 func (r *Room) changeTurn() {
-	log.Println("now player ", r.nextClientIdx)
-	if r.nextClientIdx + 1 < roomMaxPlayer {
-		r.nextClientIdx++
-	} else {
-		r.nextClientIdx = 0
-	}
-	log.Println("next player ", r.nextClientIdx)
-	log.Printf("change turn to " + r.clientIds[r.nextClientIdx])
+	r.WithLockRoom(func() {
+		if r.nextClientIdx + 1 < roomMaxPlayer {
+			r.nextClientIdx++
+		} else {
+			r.nextClientIdx = 0
+		}
+	})
 }
 
 func (r *Room) applyNgChar(ngChar string) {
@@ -135,8 +148,10 @@ func (r *Room) checkMaxPlayer() bool {
 }
 
 func (r *Room) gameStop() {
-	r.available = false
-	r.gameState = GameStop
+	r.WithLockRoom(func() {
+		r.available = false
+		r.gameState = GameStop
+	})
 }
 
 func (r Rooms) SearchAvailableRoomIdx() (bool, *Room) {
