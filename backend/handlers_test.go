@@ -283,7 +283,10 @@ func TestFillPlayerMsg(t *testing.T) {
 				userName string
 			}{{userName: "usr1"},{userName: "usr2"},},
 			reply: outbound{
-				Users: []string{"usr1", "usr2"},
+				Users:     []struct{Id string; Name string}{
+					struct{Id string; Name string}{Id: "", Name: "usr1"},
+					struct{Id string; Name string}{Id: "", Name: "usr2"},
+				},
 			},
 		},
 	}
@@ -314,7 +317,15 @@ func TestFillPlayerMsg(t *testing.T) {
 				}
 				replys := receiveWSMessage(t, ws, 1)
 				reply := replys[0]
-				if !reflect.DeepEqual(reply.Users, tt.reply.Users) {
+				replyUserNames := []string{}
+				for _, u := range reply.Users {
+					replyUserNames = append(replyUserNames, u.Name)
+				}
+				ttReplyUserNames := []string{}
+				for _, u := range tt.reply.Users {
+					ttReplyUserNames = append(ttReplyUserNames, u.Name)
+				}
+				if !reflect.DeepEqual(replyUserNames, ttReplyUserNames) {
 					t.Fatalf("Expexted '%v', got '%v'", tt.reply, reply)
 				}
 			}
@@ -342,7 +353,9 @@ func TestSetWord(t *testing.T) {
 				Result:    resultOK,
 				GameState: Initial,
 				Thema:     "",
-				Users:     []string{"usr1"},
+				Users:     []struct{Id string; Name string}{
+					struct{Id string; Name string}{Id: "", Name: "usr1"},
+				},
 				Words:     map[string]string{"usr1": "word1"},
 			},
 		},
@@ -377,7 +390,18 @@ func TestSetWord(t *testing.T) {
 				})
 				replys := receiveWSMessage(t, ws,1)
 				reply := replys[0]
-				if !(reflect.DeepEqual(reply.Users, tt.reply.Users) && reflect.DeepEqual(reply.Words, tt.reply.Words)) {
+				replyUserNames := []string{}
+				for _, u := range reply.Users {
+					replyUserNames = append(replyUserNames, u.Name)
+				}
+				ttReplyUserNames := []string{}
+				for _, u := range tt.reply.Users {
+					ttReplyUserNames = append(ttReplyUserNames, u.Name)
+				}
+				if !reflect.DeepEqual(replyUserNames, ttReplyUserNames) {
+					t.Fatalf("Expexted '%v', got '%v'", ttReplyUserNames, replyUserNames)
+				}
+				if !reflect.DeepEqual(reply.Words, tt.reply.Words) {
 					t.Fatalf("Expexted '%v', got '%v'", tt.reply.Words, reply.Words)
 				}
 			}
@@ -405,7 +429,9 @@ func TestStartGame(t *testing.T) {
 				Result:    resultOK,
 				GameState: GameStart,
 				Thema:     "",
-				Users:     []string{"usr1", "usr2"},
+				Users:     []struct{Id string; Name string}{
+					struct{Id string; Name string}{Id: "", Name: "usr1"},
+				},
 				Words:     map[string]string{"usr1": "word1", "usr2": "word2"},
 			},
 		},
