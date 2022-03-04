@@ -48,7 +48,7 @@ func NewRoom() *Room {
 		clients:       map[string]*Client{},
 		gameState:     Initial,
 		thema:         themas[rand.Intn(len(themas))],
-		nextClientIdx: -1,
+		nextClientIdx: 0,
 		clientIds:     []string{},
 		ngChars:       []NgChar{},
 		winner:        "",
