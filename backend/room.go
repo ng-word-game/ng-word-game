@@ -118,6 +118,12 @@ func (r *Room) changeTurn() {
 	})
 }
 
+func (r *Room) addNgChar(from *Client, ngChar string) {
+	r.WithLockRoom(func() {
+		r.ngChars = append(r.ngChars, NgChar{Name: from.name, Char: ngChar})
+	})
+}
+
 func (r *Room) applyNgChar(ngChar string) {
 	for _, item := range(r.ngChars) {
 		for _, client := range r.clients.values() {

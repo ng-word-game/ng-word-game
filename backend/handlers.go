@@ -41,6 +41,8 @@ type outbound struct {
 }
 
 func createOutbound(result int, room *Room) ([]byte, error) {
+	room.mux.RLock()
+	defer room.mux.RUnlock()
 	clientNames := []struct{Id string; Name string}{}
 	words := map[string]string{}
 	clientWordStates := map[string]WordState{}
@@ -53,7 +55,6 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 
 	nextTurn := ""
 	if 0 <= room.nextClientIdx && room.nextClientIdx < len(room.clients) {
-		log.Println(room.clientIds)
 		nextTurn = room.clients[room.clientIds[room.nextClientIdx]].id
 	}
 	out, err := json.Marshal(outbound{
@@ -118,9 +119,11 @@ func (h *wsHandler) run() {
 			if err != nil {
 				continue
 			}
-			for _, client := range room.clients {
-				client.send <- out
-			}
+			room.WithLockRoom(func() {
+				for _, client := range room.clients {
+					client.send <- out
+				}
+			})
 		case <- h.close:
 			return
 		}
@@ -131,8 +134,11 @@ func (r *Room) run() {
 	for {
 		select {
 		case client := <- r.leave:
+			r.mux.RLock()
 			delete(r.clients, client.id)
-			if len(r.clients) == 0 {
+			clientsLen := len(r.clients)
+			r.mux.RUnlock()
+			if clientsLen == 0 {
 				log.Println("close room, goroutine: ",  runtime.NumGoroutine())
 				return
 			}
@@ -171,7 +177,7 @@ func (r *Room) run() {
 				// 	continue
 				// }
 				log.Printf("ngChar: " + in.NgChar)
-				r.ngChars = append(r.ngChars, NgChar{Name: send.from.name, Char: in.NgChar})
+				r.addNgChar(send.from, in.NgChar)
 				r.applyNgChar(in.NgChar)
 				if checkEnd, _ := r.checkEndGame(); checkEnd {
 					r.gameEnd(send.from)
