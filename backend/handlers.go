@@ -189,7 +189,10 @@ func (r *Room) run() {
 					client.send <- out
 				}
 			case PING:
-				out, err := createOutbound(resultOK, r)
+				if r.gameState != GameStop {
+					continue
+				}
+				out, err := json.Marshal(outbound{GameState: r.gameState})
 				if err != nil {
 					continue
 				}

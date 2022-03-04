@@ -2,17 +2,17 @@
   <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
     <div class="card" style="width: 50%;">
       <div class="card-body">
-        <h3 v-if="resultMode()" class="card-title text-center">
-          Result
-        </h3>
-        <h3 v-else-if="stopMode()" class="card-title text-center">
-          対戦相手が退出しました
-        </h3>
-        <h3 v-else class="card-title text-center">
+        <h3 v-if="store.data == undefined" class="card-title text-center">
           接続が切断されました
         </h3>
-        <h4 v-if="resultMode()" class="text-center">
-          {{ winner.Name }}の勝利
+        <h3 v-else-if="store.data.game_state == STATE.GameEnd" class="card-title text-center">
+          Result
+        </h3>
+        <h3 v-else-if="store.data.game_state == STATE.GameStop" class="card-title text-center">
+          対戦相手が退出しました
+        </h3>
+        <h4 v-if="store.data.game_state != undefined && store.data.game_state == STATE.GameEnd" class="text-center">
+          {{ winner() }}の勝利
         </h4>
         <div class="d-flex flex-column justify-content-center">
           <div class="mx-auto mt-3">
@@ -42,10 +42,13 @@ export default defineComponent({
 
     return {
       store,
-      resultMode: () => store.data.game_state === STATE.GameEnd,
-      stopMode: () => store.data.game_state === STATE.GameStop,
+      STATE,
       goIndex: () => router.push({ name: 'index' }),
-      winner: store.data.users.filter(u => u.Id === store.data.winner)[0]
+      winner: () => {
+        if (store.data) {
+          return store.data.users.filter(u => u.Id === store.data.winner)[0].Name
+        }
+      }
     }
   }
 })
