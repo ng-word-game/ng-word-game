@@ -39,6 +39,7 @@ export default defineComponent({
     }
     const data = reactive(store.data)
     const waiting = ref(false)
+    const clientId = generateUuid()
 
     watch(data, () => {
       console.log('here')
@@ -53,10 +54,28 @@ export default defineComponent({
       router.push({ name: 'result' })
     }
 
+    function generateUuid() {
+      // https://github.com/GoogleChrome/chrome-platform-analytics/blob/master/src/internal/identifier.js
+      // const FORMAT: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+      const chars = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split('')
+      for (let i = 0, len = chars.length; i < len; i++) {
+        switch (chars[i]) {
+          case 'x':
+            chars[i] = Math.floor(Math.random() * 16).toString(16)
+            break
+          case 'y':
+            chars[i] = (Math.floor(Math.random() * 4) + 8).toString(16)
+            break
+        }
+      }
+      return chars.join('')
+    }
+
     const registered = () => {
       store.setName(name.value)
+      store.setClientId(clientId)
       waiting.value = true
-      const socket = new WebSocket(`${app.$config.wsURL}/?name=` + name.value)
+      const socket = new WebSocket(`${app.$config.wsURL}/?id=${clientId}&name=${name.value}`)
       console.log(socket)
       socket.addEventListener('open', () => {
         console.log('open')

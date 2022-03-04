@@ -96,8 +96,8 @@ export default defineComponent({
     if (!store.state.socket) {
       router.push({ name: 'index' })
     }
-    const user = store.data.users.filter(u => u.Name === store.state.name)[0]
-    const anotherUser = store.data.users.filter(u => u.Name !== user.Name)[0]
+    const user = store.data.users.filter(u => u.Id === store.state.clientId)[0]
+    const anotherUser = store.data.users.filter(u => u.Id !== store.state.clientId)[0]
     const ngChar = ref('')
     const ngCharValid = ref(true)
     const modalRef = ref()

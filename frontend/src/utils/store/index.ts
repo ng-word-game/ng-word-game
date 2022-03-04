@@ -4,6 +4,7 @@ import { InterfaceSocketData, STATE } from '../socket'
 
 interface InterfaceState {
   name: string
+  clientId: string
   myword: string
   socket: WebSocket|null
 }
@@ -22,12 +23,17 @@ const initialData = reactive<InterfaceSocketData>({
 
 const state = reactive<InterfaceState>({
   name: '',
+  clientId: '',
   myword: '',
   socket: null
 })
 
 const setName = (n: string): void => {
   state.name = n
+}
+
+const setClientId = (id: string): void => {
+  state.clientId = id
 }
 
 const setMyWord = (n: string): void => {
@@ -46,6 +52,7 @@ export default {
   state: readonly(state),
   data: readonly(initialData),
   setName,
+  setClientId,
   setMyWord,
   setSocket,
   setData

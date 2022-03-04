@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"math/rand"
 	"net/http"
 	"runtime"
 
@@ -233,7 +232,7 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := h.NewClient(randomString(10), r.FormValue("name"), conn)
+	client := h.NewClient(r.FormValue("id"), r.FormValue("name"), conn)
 	h.join <- client
 	defer func() {
 		log.Printf("close ServeHTTP()")
@@ -241,14 +240,4 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 	go client.write()
 	client.read()
-}
-
-func randomString(l int) string {
-	bytes := make([]byte, l)
-	pool := "_:$%&/()"
-	for i := 0; i < l; i++ {
-		bytes[i] = pool[rand.Intn(len(pool))]
-	}
-
-	return string(bytes)
 }

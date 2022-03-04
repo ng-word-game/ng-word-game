@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -37,7 +38,7 @@ func newWSServer(t *testing.T, h http.Handler, userName string) (*httptest.Serve
 	t.Helper()
 
 	s := httptest.NewServer(h)
-	wsURL := httpToWS(t, s.URL) + fmt.Sprintf("?name=%v", userName)
+	wsURL := httpToWS(t, s.URL) + fmt.Sprintf("?id=%s&name=%v", randomString(10), userName)
 
 	ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
@@ -45,6 +46,16 @@ func newWSServer(t *testing.T, h http.Handler, userName string) (*httptest.Serve
 	}
 
 	return s, ws
+}
+
+func randomString(l int) string {
+	bytes := make([]byte, l)
+	pool := "abcdefghijklm"
+	for i := 0; i < l; i++ {
+		bytes[i] = pool[rand.Intn(len(pool))]
+	}
+
+	return string(bytes)
 }
 
 // func TestRegisterUser(t *testing.T) {

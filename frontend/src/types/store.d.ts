@@ -3,6 +3,7 @@ import { InterfaceSocketData } from '~/utils/socket'
 export interface Store {
   state: {
     readonly name: string
+    readonly clientId: string
     readonly myword: string
     readonly socket: WebSocket|null
   },
@@ -18,6 +19,7 @@ export interface Store {
     readonly ng_chars: [{ name: string, char: string }]
   }
   setName: (n: string) => void
+  setClientId: (id: string) => void
   setMyWord: (n: string) => void
   setSocket: (s: WebSocket|null) => void
   setData: (d: InterfaceSocketData) => void
