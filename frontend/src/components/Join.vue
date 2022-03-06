@@ -11,9 +11,10 @@
             <button v-if="!waiting" type="submit" class="btn btn-outline-info" :disabled="waiting" @click="registered">
               参加する
             </button>
-            <p v-else>
+            <p v-else-if="!connectError">
               参加者を待っています....
             </p>
+            <p v-if="connectError">サーバーと接続できません</p>
           </div>
         </div>
       </div>
@@ -39,6 +40,7 @@ export default defineComponent({
     }
     const data = reactive(store.data)
     const waiting = ref(false)
+    const connectError = ref(false)
     const clientId = generateUuid()
 
     watch(data, () => {
@@ -77,6 +79,9 @@ export default defineComponent({
       waiting.value = true
       const socket = new WebSocket(`${app.$config.wsURL}/?id=${clientId}&name=${name.value}`)
       console.log(socket)
+      socket.addEventListener('error', () => {
+        connectError.value = true
+      })
       socket.addEventListener('open', () => {
         console.log('open')
         socket.addEventListener('message', (e) => {
@@ -92,6 +97,7 @@ export default defineComponent({
 
     return {
       name,
+      connectError,
       registered,
       waiting
     }

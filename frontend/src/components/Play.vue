@@ -1,10 +1,10 @@
 <template>
   <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
-    <div class="mb-3">
+    <div v-for="user in anotherUsers" class="mb-3">
       <p class="text-center" style="font-size: 1.2rem; font-weight: bold;">
-        {{ anotherUser.Name }}のワード
+        {{ user.Name }}のワード
       </p>
-      <SquareCom v-if="anotherUserCharInfo" :chara-info="anotherUserCharInfo" />
+      <SquareCom v-if="user && anotherUsersCharInfo !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id) !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" :chara-info="anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" />
     </div>
     <div class="d-flex align-items-center justify-content-around" style="height: 40vh; width: 80%;">
       <div style="width: 30%;">
@@ -77,7 +77,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref, watch, onMounted, reactive, useRouter } from '@nuxtjs/composition-api'
+import { defineComponent, inject, ref, watch, onMounted, reactive, useRouter, useSlots } from '@nuxtjs/composition-api'
 import { key } from '../utils/store'
 import { SET, WORDSTATE } from '../utils/socket'
 import SquareCom from './parts/Square.vue'
@@ -97,14 +97,14 @@ export default defineComponent({
       router.push({ name: 'index' })
     }
     const user = store.data.users.filter(u => u.Id === store.state.clientId)[0]
-    const anotherUser = store.data.users.filter(u => u.Id !== store.state.clientId)[0]
+    const anotherUsers = store.data.users.filter(u => u.Id !== store.state.clientId)
     const ngChar = ref('')
     const ngCharValid = ref(true)
     const modalRef = ref()
     const data = reactive(store.data)
     const nextTurn = ref(store.data.next_turn)
     const userCharInfo = ref<{char: string, isOpen: boolean, isHide: boolean}[]>()
-    const anotherUserCharInfo = ref<{char: string, isOpen: boolean, isHide: boolean}[]>()
+    const anotherUsersCharInfo = reactive<{id: string, chars: {char: string, isOpen: boolean, isHide: boolean}[]}[]>([])
     const thema = ref(store.data.thema)
     const ngCharas = ref(store.data.ng_chars)
     const registerNgChar = () => {
@@ -144,20 +144,26 @@ export default defineComponent({
         }
       })
       userCharInfo.value = usrCharInfo
-      const anUsrCharInfo: {char: string, isOpen: boolean, isHide: boolean}[] = []
-      store.data.word_state[anotherUser.Id].forEach((item) => {
-        for (const c in item) {
-          anUsrCharInfo.push({ char: c, isOpen: item[c] === WORDSTATE.OpenedWord, isHide: item[c] === WORDSTATE.HiddenWord })
+      anotherUsers.forEach((user) => {
+        const anUsrCharInfo: {char: string, isOpen: boolean, isHide: boolean}[] = []
+        store.data.word_state[user.Id].forEach((item) => {
+          for (const c in item) {
+            anUsrCharInfo.push({ char: c, isOpen: item[c] === WORDSTATE.OpenedWord, isHide: item[c] === WORDSTATE.HiddenWord })
+          }
+        })
+        if (anotherUsersCharInfo.filter(item => item.id === user.Id).length === 0) {
+          anotherUsersCharInfo.push({ id: user.Id, chars: anUsrCharInfo })
+        } else {
+          anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars = anUsrCharInfo
         }
       })
-      anotherUserCharInfo.value = anUsrCharInfo
     }
 
     return {
       user,
       userCharInfo,
-      anotherUser,
-      anotherUserCharInfo,
+      anotherUsers,
+      anotherUsersCharInfo,
       nextTurn,
       ngCharas,
       ngChar,
