@@ -89,8 +89,9 @@ func (r *Room) gameEnd(c *Client) {
 	})
 }
 
-func (r *Room) checkEndGame() (bool, string) {
-	allPass := true
+func (r *Room) checkEndGame() (bool, *Client) {
+	passedPlayer := 0
+	var winner *Client
 	for _, client := range r.clients {
 		pass := true
 		for _, v := range client.wordState {
@@ -100,12 +101,16 @@ func (r *Room) checkEndGame() (bool, string) {
 				}
 			}
 		}
-		if allPass && pass {
-			return true, client.name
+		if pass {
+			passedPlayer++
+		} else {
+			winner = client
 		}
 	}
-
-	return false, ""
+	if passedPlayer == len(r.clients) - 1 {
+		return true, winner
+	}
+	return false, nil
 }
 
 func (r *Room) changeTurn() {

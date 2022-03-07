@@ -178,8 +178,8 @@ func (r *Room) run() {
 				log.Printf("ngChar: " + in.NgChar)
 				r.addNgChar(send.from, in.NgChar)
 				r.applyNgChar(in.NgChar)
-				if checkEnd, _ := r.checkEndGame(); checkEnd {
-					r.gameEnd(send.from)
+				if checkEnd, winner := r.checkEndGame(); checkEnd {
+					r.gameEnd(winner)
 				}
 				out, err := createOutbound(resultOK, r)
 				if err != nil {
