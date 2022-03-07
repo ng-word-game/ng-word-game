@@ -227,7 +227,7 @@ func (h *wsHandler) NewClient(id string, name string, c *websocket.Conn) *Client
 	}
 }
 
-func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *wsHandler) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -243,4 +243,35 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 	go client.write()
 	client.read()
+}
+
+func (h *wsHandler) GetRooms(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	if r.Method != http.MethodGet {
+		return
+	}
+	type RoomType struct {
+		Num int `json:"num"`
+		Players []string `json:"players"`
+	}
+	type outType struct {
+		Rooms []RoomType `json:"rooms"`
+	}
+	var rooms []RoomType
+	for room := range h.rooms {
+		room.WithLockRoom(func() {
+			var players []string
+			for _, client := range room.clients {
+				players = append(players, client.name)
+			}
+			rooms = append(rooms, RoomType{Num: len(room.clients), Players: players})
+		})
+	}
+	out, err := json.Marshal(&outType{Rooms: rooms})
+	if err != nil {
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(out)
 }
