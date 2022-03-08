@@ -52,6 +52,6 @@ export default {
   build: {
   },
   publicRuntimeConfig: {
-    wsURL: process.env.WS_URL || 'ws://0.0.0.:443'
+    apiURL: process.env.API_URL || '0.0.0.0:443'
   }
 }

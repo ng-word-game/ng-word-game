@@ -72,7 +72,7 @@ export default defineComponent({
 
     const rooms = ref()
     const fetch = () => {
-      axios.get('http://0.0.0.0:443/rooms').then((response) => {
+      axios.get(`http://${app.$config.apiURL}/rooms`).then((response) => {
         rooms.value = response.data.rooms
       })
     }
@@ -128,7 +128,7 @@ export default defineComponent({
       store.setName(name.value)
       store.setClientId(clientId)
       waiting.value = true
-      const socket = new WebSocket(`${app.$config.wsURL}/?id=${clientId}&name=${name.value}&roomId=${generateUuid()}&newRoom=true&maxPlayer=${maxPlayer.value}`)
+      const socket = new WebSocket(`ws://${app.$config.apiURL}/?id=${clientId}&name=${name.value}&roomId=${generateUuid()}&newRoom=true&maxPlayer=${maxPlayer.value}`)
       console.log(socket)
       socket.addEventListener('error', () => {
         connectError.value = true
@@ -155,7 +155,7 @@ export default defineComponent({
       store.setName(name.value)
       store.setClientId(clientId)
       waiting.value = true
-      const socket = new WebSocket(`${app.$config.wsURL}/?id=${clientId}&roomId=${id}&newRoom=false&name=${name.value}&maxPlayer=0`)
+      const socket = new WebSocket(`ws://${app.$config.apiURL}/?id=${clientId}&roomId=${id}&newRoom=false&name=${name.value}&maxPlayer=0`)
       console.log(socket)
       socket.addEventListener('error', () => {
         connectError.value = true

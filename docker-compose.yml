@@ -18,6 +18,6 @@ services:
       tty: true
       environment:
         - CHOKIDAR_USEPOLLING=true
-        - WS_URL=ws://0.0.0.0:443
+        - API_URL=0.0.0.0:443
       volumes:
         - ./frontend/src:/src
