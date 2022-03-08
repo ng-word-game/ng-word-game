@@ -33,7 +33,7 @@ type outbound struct {
 		Id string
 		Name string
 	} `json:"users"`
-	Words map[string]string `json:"wors"`
+	Words map[string]string `json:"words"`
 	WordState map[string]WordState `json:"word_state"`
 	NextTurn string `json:"next_turn"`
 	Winner string `json:"winner"`
@@ -47,9 +47,9 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 	words := map[string]string{}
 	clientWordStates := map[string]WordState{}
 
-	for _, v := range room.clients.values() {
+	for _, v := range room.clients {
 		clientNames = append(clientNames, struct{Id string; Name string}{Id: v.id, Name: v.name})
-		words[v.name] = v.Word
+		words[v.id] = v.Word
 		clientWordStates[v.id] = v.wordState
 	}
 

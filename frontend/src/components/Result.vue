@@ -14,6 +14,12 @@
         <h4 v-if="store.data.game_state != undefined && store.data.game_state == STATE.GameEnd" class="text-center">
           {{ winner() }}の勝利
         </h4>
+        <h5 class="mt-3 text-center">~結果~</h5>
+        <div v-if="store.data.game_state != undefined && store.data.game_state == STATE.GameEnd" class="text-center">
+          <div v-for="user in store.data.users" :key="user.Id">
+            <div>{{ user.Name }}の単語: 「{{ store.data.words[user.Id] }}」</div>
+          </div>
+        </div>
         <div class="d-flex flex-column justify-content-center">
           <div class="mx-auto mt-3">
             <button type="submit" class="btn btn-outline-info" @click="goIndex">
