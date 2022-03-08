@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -88,50 +89,28 @@ type inbound struct {
 
 type wsHandler struct {
 	rooms Rooms
-	join chan *Client
-	close chan struct{}
 }
 
 func NewWshandler() *wsHandler {
 	return &wsHandler{
 		rooms: map[*Room]bool{},
-		join:  make(chan *Client),
-		close: make(chan struct{}),
-	}
-}
-
-func (h *wsHandler) run() {
-	defer func(){
-		log.Printf("close h.run()")
-	}()
-
-	for {
-		select {
-		case client := <-h.join:
-			log.Printf("%v join", client.name)
-			canEnter, room := h.rooms.SearchAvailableRoomIdx()
-			if !canEnter  {
-				room = h.createRoom()
-			}
-			room.join(client)
-			out, err := createOutbound(resultOK, room)
-			if err != nil {
-				continue
-			}
-			room.WithLockRoom(func() {
-				for _, client := range room.clients {
-					client.send <- out
-				}
-			})
-		case <- h.close:
-			return
-		}
 	}
 }
 
 func (r *Room) run() {
 	for {
 		select {
+		case client := <- r.join:
+			r.joinRoom(client)
+			out, err := createOutbound(resultOK, r)
+			if err != nil {
+				continue
+			}
+			r.WithLockRoom(func() {
+				for _, client := range r.clients {
+					client.send <- out
+				}
+			})
 		case client := <- r.leave:
 			r.mux.RLock()
 			delete(r.clients, client.id)
@@ -178,8 +157,8 @@ func (r *Room) run() {
 				log.Printf("ngChar: " + in.NgChar)
 				r.addNgChar(send.from, in.NgChar)
 				r.applyNgChar(in.NgChar)
-				if checkEnd, _ := r.checkEndGame(); checkEnd {
-					r.gameEnd(send.from)
+				if checkEnd, winner := r.checkEndGame(); checkEnd {
+					r.gameEnd(winner)
 				}
 				out, err := createOutbound(resultOK, r)
 				if err != nil {
@@ -204,14 +183,6 @@ func (r *Room) run() {
 	}
 }
 
-func (h *wsHandler) createRoom() *Room {
-	room := NewRoom()
-	h.rooms[room] = true
-	go room.run()
-
-	return room
-}
-
 func (h *wsHandler) NewClient(id string, name string, c *websocket.Conn) *Client {
 	log.Printf("new client: " + name)
 	return &Client{
@@ -227,7 +198,7 @@ func (h *wsHandler) NewClient(id string, name string, c *websocket.Conn) *Client
 	}
 }
 
-func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *wsHandler) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -236,11 +207,75 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := h.NewClient(r.FormValue("id"), r.FormValue("name"), conn)
-	h.join <- client
+	n, err := strconv.Atoi(r.FormValue("maxPlayer"))
+	if err != nil {
+		return
+	}
+	newRoom, err := strconv.ParseBool(r.FormValue("newRoom"))
+	if err != nil {
+		return
+	}
+	roomId := r.FormValue("roomId")
+	if !newRoom {
+		canEnter, room := h.rooms.filterById(roomId)
+		if !canEnter  {
+			return
+		}
+		room.join <- client
+	} else {
+		log.Printf("create room")
+		room := NewRoom(roomId, n)
+		h.rooms[room] = true
+		go room.run()
+		room.join <- client
+	}
+
 	defer func() {
 		log.Printf("close ServeHTTP()")
 		log.Println("run handler goroutine: ", runtime.NumGoroutine())
+		client.room.leave <- client
 	}()
 	go client.write()
 	client.read()
+}
+
+func (h *wsHandler) GetRooms(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set( "Access-Control-Allow-Methods","GET, POST, PUT, DELETE, OPTIONS" )
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	if r.Method != http.MethodGet {
+		return
+	}
+	type RoomType struct {
+		Id string `json:"id"`
+		Num int `json:"num"`
+		MaxPlayer int `json:"max_player"`
+		Players []string `json:"players"`
+	}
+	type outType struct {
+		Rooms []RoomType `json:"rooms"`
+	}
+	var rooms []RoomType
+	for _, room := range h.rooms.filterAvailable() {
+		room.WithLockRoom(func() {
+			var players []string
+			for _, client := range room.clients {
+				players = append(players, client.name)
+			}
+			rooms = append(rooms, RoomType{
+				Id:        room.id,
+				Num:       len(room.clients),
+				MaxPlayer: room.maxPlayer,
+				Players:   players,
+			})
+		})
+	}
+	out, err := json.Marshal(&outType{Rooms: rooms})
+	if err != nil {
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(out)
 }

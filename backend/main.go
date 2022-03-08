@@ -15,8 +15,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	wsHandler := NewWshandler()
-	mux.Handle("/", wsHandler)
-	go wsHandler.run()
+	mux.HandleFunc("/", wsHandler.ServeWebsocket)
+	mux.HandleFunc("/rooms", wsHandler.GetRooms)
 
 	log.Fatal(http.ListenAndServe(*addr, mux))
 }

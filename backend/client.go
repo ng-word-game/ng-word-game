@@ -32,9 +32,6 @@ func (c Clients) values() []*Client {
 
 func (c *Client) write() {
 	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-	defer func() {
-		c.room.leave <- c
-	}()
 	for {
 		select {
 		case <- c.close:

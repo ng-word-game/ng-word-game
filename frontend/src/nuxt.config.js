@@ -44,13 +44,14 @@ export default {
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     // https://go.nuxtjs.dev/bootstrap
-    'bootstrap-vue/nuxt'
+    'bootstrap-vue/nuxt',
+    '@nuxtjs/axios'
   ],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   },
   publicRuntimeConfig: {
-    wsURL: process.env.WS_URL || 'ws://0.0.0.:443'
+    apiURL: process.env.API_URL || '0.0.0.0:443'
   }
 }
