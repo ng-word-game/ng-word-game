@@ -2,28 +2,52 @@
   <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
     <div class="card" style="width: 50%;">
       <div class="card-body">
-        <h5 class="card-title text-center">
+        <h4 class="card-title text-center">
           NG単語ゲーム
-        </h5>
+        </h4>
         <div class="form-group d-flex flex-column justify-content-center">
-          <input v-model="name" type="email" class="form-control" placeholder="ユーザー名">
-          <div class="mx-auto mt-3">
-            <button v-if="!waiting" type="submit" class="btn btn-outline-info" :disabled="waiting" @click="registered">
-              参加する
+          <h5 class="text-center">ユーザー名</h5>
+          <input v-model="name" type="text" class="form-control" placeholder="ユーザー名">
+          <div v-if="nameErr" class="form-text" style="color: red;">ユーザー名を入力してください</div>
+          <h5 class="mt-3 text-center">ルームを作成</h5>
+          <div class="mx-auto form-inline">
+            <label for="inputMaxPlayer">募集人数: </label>
+            <input id="inputMaxPlayer" type="number" v-model="maxPlayer" class="mr-2 form-control" placeholder="人数">
+            <button v-if="!waiting" type="submit" class="btn btn-outline-info" :disabled="waiting" @click="createRoom">
+              ルームを作成する
             </button>
             <p v-else-if="!connectError">
               参加者を待っています....
             </p>
             <p v-if="connectError">サーバーと接続できません</p>
           </div>
+          <div v-if="maxPlayerErr" class="form-text text-center" style="color: red;">募集人数は2人以上にしてください</div>
         </div>
+        <h5 class="py-3 text-center">募集中のルーム</h5>
+        <table class="table table-borderless">
+          <thead>
+            <tr>
+              <th>参加ユーザー</th>
+              <th class="text-center">参加人数/募集人数</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="room in rooms" v-bind:key="room.id">
+              <td>{{ room.players.join(', ') }}</td>
+              <td class="text-center">{{ room.num }}/{{ room.max_player }}</td>
+              <td><button class="btn btn-outline-info" @click="joinRoom(room.id)">参加する</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, reactive, ref, useContext, useRouter, watch } from '@nuxtjs/composition-api'
+import { defineComponent, inject, onMounted, reactive, ref, useContext, useFetch, useRouter, watch } from '@nuxtjs/composition-api'
+import axios from 'axios'
 import { key } from '../utils/store'
 import { STATE } from '../utils/socket'
 import { blobToJson } from '../utils/blobReader'
@@ -34,6 +58,9 @@ export default defineComponent({
     const { app } = useContext()
     const store = inject(key)
     const name = ref<string>('')
+    const nameErr = ref(false)
+    const maxPlayer = ref(0)
+    const maxPlayerErr = ref(false)
     const router = useRouter()
     if (!store) {
       throw new Error('store undefined')
@@ -42,6 +69,20 @@ export default defineComponent({
     const waiting = ref(false)
     const connectError = ref(false)
     const clientId = generateUuid()
+
+    const rooms = ref()
+    const fetch = () => {
+      axios.get('http://0.0.0.0:443/rooms').then((response) => {
+        rooms.value = response.data.rooms
+      })
+    }
+
+    onMounted(() => {
+      fetch()
+      setInterval(() => {
+        fetch()
+      }, 5000)
+    })
 
     watch(data, () => {
       console.log('here')
@@ -73,11 +114,48 @@ export default defineComponent({
       return chars.join('')
     }
 
-    const registered = () => {
+    const createRoom = () => {
+      if (name.value.length === 0) {
+        nameErr.value = true
+        return
+      }
+      if (maxPlayer.value < 2) {
+        maxPlayerErr.value = true
+        return
+      }
+      nameErr.value = false
+      maxPlayerErr.value = false
       store.setName(name.value)
       store.setClientId(clientId)
       waiting.value = true
-      const socket = new WebSocket(`${app.$config.wsURL}/?id=${clientId}&name=${name.value}`)
+      const socket = new WebSocket(`${app.$config.wsURL}/?id=${clientId}&name=${name.value}&roomId=${generateUuid()}&newRoom=true&maxPlayer=${maxPlayer.value}`)
+      console.log(socket)
+      socket.addEventListener('error', () => {
+        connectError.value = true
+      })
+      socket.addEventListener('open', () => {
+        console.log('open')
+        socket.addEventListener('message', (e) => {
+          blobToJson(e.data).then((blobText) => {
+            console.log(blobText)
+            store.setData(blobText)
+          })
+        })
+        socket.addEventListener('close', handleCloseEvent, false)
+        store.setSocket(socket)
+      })
+    }
+
+    const joinRoom = (id: string) => {
+      if (name.value.length === 0) {
+        nameErr.value = true
+        return
+      }
+      nameErr.value = false
+      store.setName(name.value)
+      store.setClientId(clientId)
+      waiting.value = true
+      const socket = new WebSocket(`${app.$config.wsURL}/?id=${clientId}&roomId=${id}&newRoom=false&name=${name.value}&maxPlayer=0`)
       console.log(socket)
       socket.addEventListener('error', () => {
         connectError.value = true
@@ -97,9 +175,14 @@ export default defineComponent({
 
     return {
       name,
+      maxPlayer,
       connectError,
-      registered,
-      waiting
+      createRoom,
+      waiting,
+      rooms,
+      joinRoom,
+      nameErr,
+      maxPlayerErr
     }
   }
 })
