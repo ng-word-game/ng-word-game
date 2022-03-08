@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -34,11 +33,12 @@ func httpToWS(t *testing.T, u string) string {
 	return wsURL.String()
 }
 
-func newWSServer(t *testing.T, h http.Handler, userName string) (*httptest.Server, *websocket.Conn) {
+func newWSServer(t *testing.T, h *wsHandler, userName string, newRoom bool, roomId string, maxPlayer int) (*httptest.Server, *websocket.Conn) {
 	t.Helper()
 
-	s := httptest.NewServer(h)
-	wsURL := httpToWS(t, s.URL) + fmt.Sprintf("?id=%s&name=%v", randomString(10), userName)
+	s := httptest.NewServer(http.HandlerFunc(h.ServeWebsocket))
+	wsURL := ""
+	wsURL = httpToWS(t, s.URL) + fmt.Sprintf("?id=%s&roomId=%v&newRoom=%v&maxPlayer=%v&name=%v", randomString(10), roomId, newRoom, maxPlayer, userName)
 
 	ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
@@ -46,16 +46,6 @@ func newWSServer(t *testing.T, h http.Handler, userName string) (*httptest.Serve
 	}
 
 	return s, ws
-}
-
-func randomString(l int) string {
-	bytes := make([]byte, l)
-	pool := "abcdefghijklm"
-	for i := 0; i < l; i++ {
-		bytes[i] = pool[rand.Intn(len(pool))]
-	}
-
-	return string(bytes)
 }
 
 // func TestRegisterUser(t *testing.T) {
@@ -105,136 +95,99 @@ func randomString(l int) string {
 // 	}
 // }
 
-func TestGoRoutine(t *testing.T) {
-	defer goleak.VerifyNone(t)
-	tcs := []struct {
-		name string
-		users []struct {
-			userName string
-		}
-		roomCount int
-	}{
-		{
-			name: "1 user",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"},},
-			roomCount: 1,
-		},
-		{
-			name: "2 users",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"}, {userName: "usr2"}},
-			roomCount: 1,
-		},
-		{
-			name: "3 users",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"}, {userName: "usr2"}, {userName: "usr3"}},
-			roomCount: 2,
-		},
-		{
-			name: "10 users",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"}, {userName: "usr2"},
-			{userName: "usr3"}, {userName: "usr4"},
-			{userName: "usr5"}, {userName: "usr6"},
-			{userName: "usr7"}, {userName: "usr8"},
-			{userName: "usr9"}, {userName: "usr10"}},
-			roomCount: 5,
-		},
-	}
-
-	for _, tt := range tcs {
-		t.Run(tt.name, func(t *testing.T) {
-			h := NewWshandler()
-			// servers := []*httptest.Server{}
-			// connections := []*websocket.Conn{}
-			// defer func () {
-			// 	log.Printf("handler close")
-			// 	// close(h.close)
-			// 	for _, s := range servers {
-			// 		s.Close()
-			// 	}
-			// 	for _, ws := range connections {
-			// 		ws.Close()
-			// 	}
-			// }()
-			defer close(h.close)
-			go h.run()
-			for _, v := range tt.users {
-				s, ws := newWSServer(t, h, v.userName)
-				defer func(){
-					s.Close()
-					ws.Close()
-				}()
-				// servers = append(servers, s)
-				// connections = append(connections, ws)
-				time.Sleep(time.Second * 1)
-			}
-			log.Println(h.rooms)
-			if len(h.rooms) != tt.roomCount {
-				t.Fatalf("Expexted '%v', got '%v'", tt.roomCount, len(h.rooms))
-			}
-		})
-	}
-}
-
 func TestCreateRoom(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	tcs := []struct {
 		name string
 		users []struct {
 			userName string
+			roomId string
+			newRoom bool
 		}
+		maxPlayer int
 		roomCount int
 	}{
 		{
 			name: "1 user",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"},},
+			users: []struct{ userName string; roomId string; newRoom bool }{{userName: "usr1", roomId: "room1", newRoom: true}},
+			maxPlayer: 2,
 			roomCount: 1,
 		},
 		{
 			name: "2 users",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"}, {userName: "usr2"}},
+			users: []struct{ userName string; roomId string; newRoom bool }{{userName: "usr1", roomId: "room1", newRoom: true}, {userName: "usr2", roomId: "room1", newRoom: false}},
+			maxPlayer: 2,
 			roomCount: 1,
 		},
 		{
-			name: "3 users",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"}, {userName: "usr2"}, {userName: "usr3"}},
+			name: "3 users in 2 rooms",
+			users: []struct{ userName string; roomId string; newRoom bool }{
+				{userName: "usr1", roomId: "room1", newRoom: true},
+				{userName: "usr2", roomId: "room1", newRoom: false},
+				{userName: "usr3", roomId: "room2", newRoom: true},
+			},
+			maxPlayer: 2,
 			roomCount: 2,
 		},
 		{
-			name: "10 users",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"}, {userName: "usr2"},
-			{userName: "usr3"}, {userName: "usr4"},
-			{userName: "usr5"}, {userName: "usr6"},
-			{userName: "usr7"}, {userName: "usr8"},
-			{userName: "usr9"}, {userName: "usr10"}},
+			name: "3 users in 1 rooms",
+			users: []struct{ userName string; roomId string; newRoom bool }{
+				{userName: "usr1", roomId: "room1", newRoom: true},
+				{userName: "usr2", roomId: "room1", newRoom: false},
+				{userName: "usr3", roomId: "room2", newRoom: false},
+			},
+			maxPlayer: 3,
+			roomCount: 1,
+		},
+		{
+			name: "10 users in 5 rooms",
+			users: []struct{ userName string; roomId string; newRoom bool }{
+				{userName: "usr1", roomId: "room1", newRoom: true},
+				{userName: "usr2", roomId: "room1", newRoom: false},
+				{userName: "usr3", roomId: "room2", newRoom: true},
+				{userName: "usr4", roomId: "room2", newRoom: false},
+				{userName: "usr5", roomId: "room3", newRoom: true},
+				{userName: "usr6", roomId: "room3", newRoom: false},
+				{userName: "usr7", roomId: "room4", newRoom: true},
+				{userName: "usr8", roomId: "room4", newRoom: false},
+				{userName: "usr9", roomId: "room5", newRoom: true},
+				{userName: "usr10", roomId: "room5", newRoom: false},
+			},
+			maxPlayer: 2,
 			roomCount: 5,
+		},
+		{
+			name: "10 users in 2 rooms",
+			users: []struct{ userName string; roomId string; newRoom bool }{
+				{userName: "usr1", roomId: "room1", newRoom: true},
+				{userName: "usr2", roomId: "room1", newRoom: false},
+				{userName: "usr3", roomId: "room1", newRoom: false},
+				{userName: "usr4", roomId: "room1", newRoom: false},
+				{userName: "usr5", roomId: "room1", newRoom: false},
+				{userName: "usr6", roomId: "room2", newRoom: true},
+				{userName: "usr7", roomId: "room2", newRoom: false},
+				{userName: "usr8", roomId: "room2", newRoom: false},
+				{userName: "usr9", roomId: "room2", newRoom: false},
+				{userName: "usr10", roomId: "room2", newRoom: false},
+			},
+			maxPlayer: 5,
+			roomCount: 2,
 		},
 	}
 
 	for _, tt := range tcs {
 		t.Run(tt.name, func(t *testing.T) {
 			h := NewWshandler()
-			defer close(h.close)
-			go h.run()
+
 			for _, v := range tt.users {
-				s, ws := newWSServer(t, h, v.userName)
-				defer s.Close()
-				defer ws.Close()
+				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
+				defer func(){
+					log.Printf("close")
+					s.Close()
+					ws.Close()
+				}()
+				// servers = append(servers, s)
+				// connections = append(connections, ws)
 				time.Sleep(time.Second * 1)
 			}
 			log.Println(h.rooms)
@@ -281,18 +234,45 @@ func sendMessage(t *testing.T, ws *websocket.Conn, msg inbound) {
 
 func TestFillPlayerMsg(t *testing.T) {
 	defer goleak.VerifyNone(t)
+	// tcs := []struct {
+	// 	name string
+	// 	users []struct {
+	// 		userName string
+	// 	}
+	// 	reply outbound
+	// }{
+	// 	{
+	// 		name: "1 user",
+	// 		users: []struct {
+	// 			userName string
+	// 		}{{userName: "usr1"},{userName: "usr2"},},
+	// 		reply: outbound{
+	// 			Users:     []struct{Id string; Name string}{
+	// 				struct{Id string; Name string}{Id: "", Name: "usr1"},
+	// 				struct{Id string; Name string}{Id: "", Name: "usr2"},
+	// 			},
+	// 		},
+	// 	},
+	// }
 	tcs := []struct {
 		name string
 		users []struct {
 			userName string
+			roomId string
+			newRoom bool
 		}
+		maxPlayer int
+		roomCount int
 		reply outbound
 	}{
 		{
 			name: "1 user",
-			users: []struct {
-				userName string
-			}{{userName: "usr1"},{userName: "usr2"},},
+			users: []struct{ userName string; roomId string; newRoom bool }{
+				{userName: "usr1", roomId: "room1", newRoom: true},
+				{userName: "usr2", roomId: "room1", newRoom: false},
+			},
+			maxPlayer: 2,
+			roomCount: 1,
 			reply: outbound{
 				Users:     []struct{Id string; Name string}{
 					struct{Id string; Name string}{Id: "", Name: "usr1"},
@@ -309,7 +289,6 @@ func TestFillPlayerMsg(t *testing.T) {
 			connections := []*websocket.Conn{}
 			defer func () {
 				log.Printf("handler close")
-				close(h.close)
 				for _, s := range servers {
 					s.Close()
 				}
@@ -317,9 +296,8 @@ func TestFillPlayerMsg(t *testing.T) {
 					ws.Close()
 				}
 			}()
-			go h.run()
 			for _, v := range tt.users {
-				s, ws := newWSServer(t, h, v.userName)
+				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
@@ -346,20 +324,48 @@ func TestFillPlayerMsg(t *testing.T) {
 
 func TestSetWord(t *testing.T) {
 	defer goleak.VerifyNone(t)
+	// tcs := []struct {
+	// 	name string
+	// 	users []struct {
+	// 		userName string
+	// 		word string
+	// 	}
+	// 	reply outbound
+	// }{
+	// 	{
+	// 		name: "1 user",
+	// 		users: []struct {
+	// 			userName string
+	// 			word string
+	// 		}{{userName: "usr1", word: "word1"},},
+			// reply: outbound{
+			// 	Result:    resultOK,
+			// 	GameState: Initial,
+			// 	Thema:     "",
+			// 	Users:     []struct{Id string; Name string}{
+			// 		struct{Id string; Name string}{Id: "", Name: "usr1"},
+			// 	},
+			// 	Words:     map[string]string{"usr1": "word1"},
+			// },
+	// 	},
+	// }
 	tcs := []struct {
 		name string
 		users []struct {
 			userName string
 			word string
+			roomId string
+			newRoom bool
 		}
+		maxPlayer int
+		roomCount int
 		reply outbound
 	}{
 		{
 			name: "1 user",
-			users: []struct {
-				userName string
-				word string
-			}{{userName: "usr1", word: "word1"},},
+			users: []struct{ userName string; word string; roomId string; newRoom bool }{{userName: "usr1", word: "word1", roomId: "room1", newRoom: true}},
+			maxPlayer: 2,
+			roomCount: 1,
 			reply: outbound{
 				Result:    resultOK,
 				GameState: Initial,
@@ -379,7 +385,6 @@ func TestSetWord(t *testing.T) {
 			connections := []*websocket.Conn{}
 			defer func () {
 				log.Printf("handler close")
-				close(h.close)
 				for _, s := range servers {
 					s.Close()
 				}
@@ -387,9 +392,9 @@ func TestSetWord(t *testing.T) {
 					ws.Close()
 				}
 			}()
-			go h.run()
+
 			for _, v := range tt.users {
-				s, ws := newWSServer(t, h, v.userName)
+				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
@@ -422,20 +427,51 @@ func TestSetWord(t *testing.T) {
 
 func TestStartGame(t *testing.T) {
 	defer goleak.VerifyNone(t)
+	// tcs := []struct {
+	// 	name string
+	// 	users []struct {
+	// 		userName string
+	// 		word string
+	// 	}
+	// 	reply outbound
+	// }{
+	// 	{
+	// 		name: "2 user",
+	// 		users: []struct {
+	// 			userName string
+	// 			word string
+	// 		}{{userName: "usr1", word: "word1"},{userName: "usr2", word: "word2"}},
+			// reply: outbound{
+			// 	Result:    resultOK,
+			// 	GameState: GameStart,
+			// 	Thema:     "",
+			// 	Users:     []struct{Id string; Name string}{
+			// 		struct{Id string; Name string}{Id: "", Name: "usr1"},
+			// 	},
+			// 	Words:     map[string]string{"usr1": "word1", "usr2": "word2"},
+			// },
+	// 	},
+	// }
 	tcs := []struct {
 		name string
 		users []struct {
 			userName string
 			word string
+			roomId string
+			newRoom bool
 		}
+		maxPlayer int
+		roomCount int
 		reply outbound
 	}{
 		{
 			name: "2 user",
-			users: []struct {
-				userName string
-				word string
-			}{{userName: "usr1", word: "word1"},{userName: "usr2", word: "word2"}},
+			users: []struct{ userName string; word string; roomId string; newRoom bool }{
+				{userName: "usr1", word: "word1", roomId: "room1", newRoom: true},
+				{userName: "usr2", word: "word2", roomId: "room1", newRoom: false},
+			},
+			maxPlayer: 2,
+			roomCount: 1,
 			reply: outbound{
 				Result:    resultOK,
 				GameState: GameStart,
@@ -454,8 +490,6 @@ func TestStartGame(t *testing.T) {
 			servers := []*httptest.Server{}
 			connections := []*websocket.Conn{}
 			defer func () {
-				log.Printf("handler close")
-				close(h.close)
 				for _, s := range servers {
 					s.Close()
 				}
@@ -463,26 +497,26 @@ func TestStartGame(t *testing.T) {
 					ws.Close()
 				}
 			}()
-			go h.run()
 			for _, v := range tt.users[:len(tt.users)-1] {
-				s, ws := newWSServer(t, h, v.userName)
+				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
-				receiveWSMessage(t, ws,1)
+				log.Println(receiveWSMessage(t, ws,1))
 				sendMessage(t, ws, inbound{
 					Word: v.word,
 				})
-				receiveWSMessage(t, ws,1)
+				log.Println(receiveWSMessage(t, ws,1))
 			}
-			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userName)
+			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userName, tt.users[len(tt.users)-1].newRoom, tt.users[len(tt.users)-1].roomId, tt.maxPlayer)
 			servers = append(servers, s)
 			connections = append(connections, ws)
-			receiveWSMessage(t, ws,1)
+			log.Println(receiveWSMessage(t, ws,1))
 			sendMessage(t, ws, inbound{
 				Word: tt.users[len(tt.users)-1].word,
 			})
 			replys := receiveWSMessage(t, ws, 2)
+			log.Println(replys)
 			reply := replys[1]
 			if !(reply.GameState == tt.reply.GameState && reflect.DeepEqual(reply.Words, tt.reply.Words)) {
 				t.Fatalf("Expexted '%v', got '%v'", tt.reply, reply)

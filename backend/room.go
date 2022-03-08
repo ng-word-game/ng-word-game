@@ -1,15 +1,14 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"math/rand"
-	"reflect"
 	"sync"
 )
 
 type Room struct {
 	mux sync.RWMutex
+	id string
 	available bool
 	clients Clients
 	gameState int
@@ -23,6 +22,8 @@ type Room struct {
 		body []byte
 	}
 	leave chan *Client
+	join chan *Client
+	maxPlayer int
 }
 
 func (r *Room) WithLockRoom(fn func()) {
@@ -41,9 +42,10 @@ func (r Rooms) keys() []*Room {
     return ks
 }
 
-func NewRoom() *Room {
+func NewRoom(id string, maxPlayer int) *Room {
 	return &Room{
 		mux:           sync.RWMutex{},
+		id:            id,
 		available:     true,
 		clients:       map[string]*Client{},
 		gameState:     Initial,
@@ -56,16 +58,28 @@ func NewRoom() *Room {
 			from *Client
 			body []byte
 		}),
-		leave: make(chan *Client),
+		leave:     make(chan *Client),
+		join:      make(chan *Client),
+		maxPlayer: maxPlayer,
 	}
 }
 
-func (r *Room) join(client *Client) {
+func randomString(l int) string {
+	bytes := make([]byte, l)
+	pool := "abcdefghijklm"
+	for i := 0; i < l; i++ {
+		bytes[i] = pool[rand.Intn(len(pool))]
+	}
+
+	return string(bytes)
+}
+
+func (r *Room) joinRoom(client *Client) {
 	log.Printf("%v join room", client.name)
 	client.room = r
 	r.clients[client.id] = client
 	r.clientIds = append(r.clientIds, client.id)
-	if len(r.clients) >= roomMaxPlayer {
+	if len(r.clients) >= r.maxPlayer {
 		r.WithLockRoom(func() {
 			r.available = false
 			r.gameState = PlayerFilled
@@ -115,7 +129,7 @@ func (r *Room) checkEndGame() (bool, *Client) {
 
 func (r *Room) changeTurn() {
 	r.WithLockRoom(func() {
-		if r.nextClientIdx + 1 < roomMaxPlayer {
+		if r.nextClientIdx + 1 < r.maxPlayer {
 			r.nextClientIdx++
 		} else {
 			r.nextClientIdx = 0
@@ -152,7 +166,7 @@ func(r *Room) checkAllWords() bool {
 }
 
 func (r *Room) checkMaxPlayer() bool {
-	if len(r.clients) == roomMaxPlayer {
+	if len(r.clients) == r.maxPlayer {
 		return true
 	}
 
@@ -166,9 +180,9 @@ func (r *Room) gameStop() {
 	})
 }
 
-func (r Rooms) SearchAvailableRoomIdx() (bool, *Room) {
+func (r Rooms) filterById(id string) (bool, *Room) {
 	for _, v := range r.keys() {
-		if v.available {
+		if v.available && v.id == id {
 			return true, v
 		}
 	}
@@ -176,14 +190,13 @@ func (r Rooms) SearchAvailableRoomIdx() (bool, *Room) {
 	return false, nil
 }
 
-func (r Rooms) SearchRoomByClient(client *Client) (error, *Room) {
-	for _, room := range r.keys() {
-		for _, v := range room.clients {
-			if reflect.DeepEqual(client, &v) {
-				return nil, room
-			}
+func (r Rooms) filterAvailable() ([]*Room) {
+	var rooms []*Room
+	for room := range r {
+		if room.available {
+			rooms = append(rooms, room)
 		}
 	}
 
-	return errors.New("can't find room"), nil
+	return rooms
 }
