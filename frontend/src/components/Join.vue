@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-    <div class="card" style="width: 50%;">
+    <div class="card" style="width: 75%;">
       <div class="card-body">
         <h4 class="card-title text-center">
           NG単語ゲーム
@@ -10,11 +10,11 @@
           <input v-model="name" type="text" class="form-control" placeholder="ユーザー名">
           <div v-if="nameErr" class="form-text" style="color: red;">ユーザー名を入力してください</div>
           <h5 class="mt-3 text-center">ルームを作成</h5>
-          <div class="mx-auto form-inline">
+          <div class="mx-auto form-inline justify-content-center">
             <label for="inputMaxPlayer">募集人数: </label>
-            <input id="inputMaxPlayer" type="number" v-model="maxPlayer" class="mr-2 form-control" placeholder="人数">
+            <input id="inputMaxPlayer" type="number" v-model="maxPlayer" class="mx-2 form-control" placeholder="人数" style="width: 25%;">
             <button v-if="!waiting" type="submit" class="btn btn-outline-info" :disabled="waiting" @click="createRoom">
-              ルームを作成する
+              ルームを作成
             </button>
             <p v-else-if="!connectError">
               参加者を待っています....
@@ -36,7 +36,7 @@
             <tr v-for="room in rooms" v-bind:key="room.id">
               <td>{{ room.players.join(', ') }}</td>
               <td class="text-center">{{ room.num }}/{{ room.max_player }}</td>
-              <td><button class="btn btn-outline-info" @click="joinRoom(room.id)">参加する</button></td>
+              <td style="width: 35%;"><button class="btn btn-outline-info" @click="joinRoom(room.id)">参加</button></td>
             </tr>
           </tbody>
         </table>
