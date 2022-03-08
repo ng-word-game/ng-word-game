@@ -98,30 +98,42 @@ func newWSServer(t *testing.T, h *wsHandler, userName string, newRoom bool, room
 func TestCreateRoom(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	tcs := []struct {
-		name string
+		name  string
 		users []struct {
 			userName string
-			roomId string
-			newRoom bool
+			roomId   string
+			newRoom  bool
 		}
 		maxPlayer int
 		roomCount int
 	}{
 		{
 			name: "1 user",
-			users: []struct{ userName string; roomId string; newRoom bool }{{userName: "usr1", roomId: "room1", newRoom: true}},
+			users: []struct {
+				userName string
+				roomId   string
+				newRoom  bool
+			}{{userName: "usr1", roomId: "room1", newRoom: true}},
 			maxPlayer: 2,
 			roomCount: 1,
 		},
 		{
 			name: "2 users",
-			users: []struct{ userName string; roomId string; newRoom bool }{{userName: "usr1", roomId: "room1", newRoom: true}, {userName: "usr2", roomId: "room1", newRoom: false}},
+			users: []struct {
+				userName string
+				roomId   string
+				newRoom  bool
+			}{{userName: "usr1", roomId: "room1", newRoom: true}, {userName: "usr2", roomId: "room1", newRoom: false}},
 			maxPlayer: 2,
 			roomCount: 1,
 		},
 		{
 			name: "3 users in 2 rooms",
-			users: []struct{ userName string; roomId string; newRoom bool }{
+			users: []struct {
+				userName string
+				roomId   string
+				newRoom  bool
+			}{
 				{userName: "usr1", roomId: "room1", newRoom: true},
 				{userName: "usr2", roomId: "room1", newRoom: false},
 				{userName: "usr3", roomId: "room2", newRoom: true},
@@ -131,7 +143,11 @@ func TestCreateRoom(t *testing.T) {
 		},
 		{
 			name: "3 users in 1 rooms",
-			users: []struct{ userName string; roomId string; newRoom bool }{
+			users: []struct {
+				userName string
+				roomId   string
+				newRoom  bool
+			}{
 				{userName: "usr1", roomId: "room1", newRoom: true},
 				{userName: "usr2", roomId: "room1", newRoom: false},
 				{userName: "usr3", roomId: "room2", newRoom: false},
@@ -141,7 +157,11 @@ func TestCreateRoom(t *testing.T) {
 		},
 		{
 			name: "10 users in 5 rooms",
-			users: []struct{ userName string; roomId string; newRoom bool }{
+			users: []struct {
+				userName string
+				roomId   string
+				newRoom  bool
+			}{
 				{userName: "usr1", roomId: "room1", newRoom: true},
 				{userName: "usr2", roomId: "room1", newRoom: false},
 				{userName: "usr3", roomId: "room2", newRoom: true},
@@ -158,7 +178,11 @@ func TestCreateRoom(t *testing.T) {
 		},
 		{
 			name: "10 users in 2 rooms",
-			users: []struct{ userName string; roomId string; newRoom bool }{
+			users: []struct {
+				userName string
+				roomId   string
+				newRoom  bool
+			}{
 				{userName: "usr1", roomId: "room1", newRoom: true},
 				{userName: "usr2", roomId: "room1", newRoom: false},
 				{userName: "usr3", roomId: "room1", newRoom: false},
@@ -181,7 +205,7 @@ func TestCreateRoom(t *testing.T) {
 
 			for _, v := range tt.users {
 				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
-				defer func(){
+				defer func() {
 					log.Printf("close")
 					s.Close()
 					ws.Close()
@@ -255,28 +279,41 @@ func TestFillPlayerMsg(t *testing.T) {
 	// 	},
 	// }
 	tcs := []struct {
-		name string
+		name  string
 		users []struct {
 			userName string
-			roomId string
-			newRoom bool
+			roomId   string
+			newRoom  bool
 		}
 		maxPlayer int
 		roomCount int
-		reply outbound
+		reply     outbound
 	}{
 		{
 			name: "1 user",
-			users: []struct{ userName string; roomId string; newRoom bool }{
+			users: []struct {
+				userName string
+				roomId   string
+				newRoom  bool
+			}{
 				{userName: "usr1", roomId: "room1", newRoom: true},
 				{userName: "usr2", roomId: "room1", newRoom: false},
 			},
 			maxPlayer: 2,
 			roomCount: 1,
 			reply: outbound{
-				Users:     []struct{Id string; Name string}{
-					struct{Id string; Name string}{Id: "", Name: "usr1"},
-					struct{Id string; Name string}{Id: "", Name: "usr2"},
+				Users: []struct {
+					Id   string
+					Name string
+				}{
+					struct {
+						Id   string
+						Name string
+					}{Id: "", Name: "usr1"},
+					struct {
+						Id   string
+						Name string
+					}{Id: "", Name: "usr2"},
 				},
 			},
 		},
@@ -287,7 +324,7 @@ func TestFillPlayerMsg(t *testing.T) {
 			h := NewWshandler()
 			servers := []*httptest.Server{}
 			connections := []*websocket.Conn{}
-			defer func () {
+			defer func() {
 				log.Printf("handler close")
 				for _, s := range servers {
 					s.Close()
@@ -338,42 +375,53 @@ func TestSetWord(t *testing.T) {
 	// 			userName string
 	// 			word string
 	// 		}{{userName: "usr1", word: "word1"},},
-			// reply: outbound{
-			// 	Result:    resultOK,
-			// 	GameState: Initial,
-			// 	Thema:     "",
-			// 	Users:     []struct{Id string; Name string}{
-			// 		struct{Id string; Name string}{Id: "", Name: "usr1"},
-			// 	},
-			// 	Words:     map[string]string{"usr1": "word1"},
-			// },
+	// reply: outbound{
+	// 	Result:    resultOK,
+	// 	GameState: Initial,
+	// 	Thema:     "",
+	// 	Users:     []struct{Id string; Name string}{
+	// 		struct{Id string; Name string}{Id: "", Name: "usr1"},
+	// 	},
+	// 	Words:     map[string]string{"usr1": "word1"},
+	// },
 	// 	},
 	// }
 	tcs := []struct {
-		name string
+		name  string
 		users []struct {
 			userName string
-			word string
-			roomId string
-			newRoom bool
+			word     string
+			roomId   string
+			newRoom  bool
 		}
 		maxPlayer int
 		roomCount int
-		reply outbound
+		reply     outbound
 	}{
 		{
 			name: "1 user",
-			users: []struct{ userName string; word string; roomId string; newRoom bool }{{userName: "usr1", word: "word1", roomId: "room1", newRoom: true}},
+			users: []struct {
+				userName string
+				word     string
+				roomId   string
+				newRoom  bool
+			}{{userName: "usr1", word: "word1", roomId: "room1", newRoom: true}},
 			maxPlayer: 2,
 			roomCount: 1,
 			reply: outbound{
 				Result:    resultOK,
 				GameState: Initial,
 				Thema:     "",
-				Users:     []struct{Id string; Name string}{
-					struct{Id string; Name string}{Id: "", Name: "usr1"},
+				Users: []struct {
+					Id   string
+					Name string
+				}{
+					struct {
+						Id   string
+						Name string
+					}{Id: "", Name: "usr1"},
 				},
-				Words:     map[string]string{"usr1": "word1"},
+				Words: map[string]string{"usr1": "word1"},
 			},
 		},
 	}
@@ -383,7 +431,7 @@ func TestSetWord(t *testing.T) {
 			h := NewWshandler()
 			servers := []*httptest.Server{}
 			connections := []*websocket.Conn{}
-			defer func () {
+			defer func() {
 				log.Printf("handler close")
 				for _, s := range servers {
 					s.Close()
@@ -398,13 +446,13 @@ func TestSetWord(t *testing.T) {
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
-				receiveWSMessage(t, ws,1)
+				receiveWSMessage(t, ws, 1)
 				sendMessage(t, ws, inbound{
-					Type: setWord,
-					Word: v.word,
+					Type:   setWord,
+					Word:   v.word,
 					NgChar: "",
 				})
-				replys := receiveWSMessage(t, ws,1)
+				replys := receiveWSMessage(t, ws, 1)
 				reply := replys[0]
 				replyUserNames := []string{}
 				for _, u := range reply.Users {
@@ -441,32 +489,37 @@ func TestStartGame(t *testing.T) {
 	// 			userName string
 	// 			word string
 	// 		}{{userName: "usr1", word: "word1"},{userName: "usr2", word: "word2"}},
-			// reply: outbound{
-			// 	Result:    resultOK,
-			// 	GameState: GameStart,
-			// 	Thema:     "",
-			// 	Users:     []struct{Id string; Name string}{
-			// 		struct{Id string; Name string}{Id: "", Name: "usr1"},
-			// 	},
-			// 	Words:     map[string]string{"usr1": "word1", "usr2": "word2"},
-			// },
+	// reply: outbound{
+	// 	Result:    resultOK,
+	// 	GameState: GameStart,
+	// 	Thema:     "",
+	// 	Users:     []struct{Id string; Name string}{
+	// 		struct{Id string; Name string}{Id: "", Name: "usr1"},
+	// 	},
+	// 	Words:     map[string]string{"usr1": "word1", "usr2": "word2"},
+	// },
 	// 	},
 	// }
 	tcs := []struct {
-		name string
+		name  string
 		users []struct {
 			userName string
-			word string
-			roomId string
-			newRoom bool
+			word     string
+			roomId   string
+			newRoom  bool
 		}
 		maxPlayer int
 		roomCount int
-		reply outbound
+		reply     outbound
 	}{
 		{
 			name: "2 user",
-			users: []struct{ userName string; word string; roomId string; newRoom bool }{
+			users: []struct {
+				userName string
+				word     string
+				roomId   string
+				newRoom  bool
+			}{
 				{userName: "usr1", word: "word1", roomId: "room1", newRoom: true},
 				{userName: "usr2", word: "word2", roomId: "room1", newRoom: false},
 			},
@@ -476,10 +529,16 @@ func TestStartGame(t *testing.T) {
 				Result:    resultOK,
 				GameState: GameStart,
 				Thema:     "",
-				Users:     []struct{Id string; Name string}{
-					struct{Id string; Name string}{Id: "", Name: "usr1"},
+				Users: []struct {
+					Id   string
+					Name string
+				}{
+					struct {
+						Id   string
+						Name string
+					}{Id: "", Name: "usr1"},
 				},
-				Words:     map[string]string{"usr1": "word1", "usr2": "word2"},
+				Words: map[string]string{"usr1": "word1", "usr2": "word2"},
 			},
 		},
 	}
@@ -489,7 +548,7 @@ func TestStartGame(t *testing.T) {
 			h := NewWshandler()
 			servers := []*httptest.Server{}
 			connections := []*websocket.Conn{}
-			defer func () {
+			defer func() {
 				for _, s := range servers {
 					s.Close()
 				}
@@ -502,16 +561,16 @@ func TestStartGame(t *testing.T) {
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
-				log.Println(receiveWSMessage(t, ws,1))
+				log.Println(receiveWSMessage(t, ws, 1))
 				sendMessage(t, ws, inbound{
 					Word: v.word,
 				})
-				log.Println(receiveWSMessage(t, ws,1))
+				log.Println(receiveWSMessage(t, ws, 1))
 			}
 			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userName, tt.users[len(tt.users)-1].newRoom, tt.users[len(tt.users)-1].roomId, tt.maxPlayer)
 			servers = append(servers, s)
 			connections = append(connections, ws)
-			log.Println(receiveWSMessage(t, ws,1))
+			log.Println(receiveWSMessage(t, ws, 1))
 			sendMessage(t, ws, inbound{
 				Word: tt.users[len(tt.users)-1].word,
 			})
@@ -524,5 +583,3 @@ func TestStartGame(t *testing.T) {
 		})
 	}
 }
-
-

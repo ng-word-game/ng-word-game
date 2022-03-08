@@ -11,12 +11,12 @@ import (
 )
 
 var upgrader = &websocket.Upgrader{
-	ReadBufferSize: 1024,
+	ReadBufferSize:  1024,
 	WriteBufferSize: 256,
 }
 
 const (
-	resultOK = iota
+	resultOK  = iota
 	resultErr = iota
 )
 
@@ -26,29 +26,35 @@ type NgChar struct {
 }
 
 type outbound struct {
-	Result int `json:"result"`
-	GameState int `json:"game_state"`
-	Thema string `json:"thema"`
-	Users []struct{
-		Id string
+	Result    int    `json:"result"`
+	GameState int    `json:"game_state"`
+	Thema     string `json:"thema"`
+	Users     []struct {
+		Id   string
 		Name string
 	} `json:"users"`
-	Words map[string]string `json:"words"`
+	Words     map[string]string    `json:"words"`
 	WordState map[string]WordState `json:"word_state"`
-	NextTurn string `json:"next_turn"`
-	Winner string `json:"winner"`
-	NgChars []NgChar `json:"ng_chars"`
+	NextTurn  string               `json:"next_turn"`
+	Winner    string               `json:"winner"`
+	NgChars   []NgChar             `json:"ng_chars"`
 }
 
 func createOutbound(result int, room *Room) ([]byte, error) {
 	room.mux.RLock()
 	defer room.mux.RUnlock()
-	clientNames := []struct{Id string; Name string}{}
+	clientNames := []struct {
+		Id   string
+		Name string
+	}{}
 	words := map[string]string{}
 	clientWordStates := map[string]WordState{}
 
 	for _, v := range room.clients {
-		clientNames = append(clientNames, struct{Id string; Name string}{Id: v.id, Name: v.name})
+		clientNames = append(clientNames, struct {
+			Id   string
+			Name string
+		}{Id: v.id, Name: v.name})
 		words[v.id] = v.Word
 		clientWordStates[v.id] = v.wordState
 	}
@@ -76,14 +82,14 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 }
 
 const (
-	setWord = iota
+	setWord   = iota
 	setNgChar = iota
-	PING = iota
+	PING      = iota
 )
 
 type inbound struct {
-	Type int `json:"type"`
-	Word string `json:"word"`
+	Type   int    `json:"type"`
+	Word   string `json:"word"`
 	NgChar string `json:"ng_char"`
 }
 
@@ -100,7 +106,7 @@ func NewWshandler() *wsHandler {
 func (r *Room) run() {
 	for {
 		select {
-		case client := <- r.join:
+		case client := <-r.join:
 			r.joinRoom(client)
 			out, err := createOutbound(resultOK, r)
 			if err != nil {
@@ -111,16 +117,16 @@ func (r *Room) run() {
 					client.send <- out
 				}
 			})
-		case client := <- r.leave:
+		case client := <-r.leave:
 			r.mux.RLock()
 			delete(r.clients, client.id)
 			clientsLen := len(r.clients)
 			r.mux.RUnlock()
 			if clientsLen == 0 {
-				log.Println("close room, goroutine: ",  runtime.NumGoroutine())
+				log.Println("close room, goroutine: ", runtime.NumGoroutine())
 				return
 			}
-		case send := <- r.send:
+		case send := <-r.send:
 			var in inbound
 			err := json.Unmarshal(send.body, &in)
 			if err != nil {
@@ -128,14 +134,14 @@ func (r *Room) run() {
 			}
 			switch in.Type {
 			case setWord:
-				log.Printf("word: "+ in.Word)
+				log.Printf("word: " + in.Word)
 				send.from.setWord(in.Word)
 				out, err := createOutbound(resultOK, r)
 				if err != nil {
 					continue
 				}
 				send.from.send <- out
-	
+
 				if r.checkMaxPlayer() && r.checkAllWords() {
 					r.gameStart()
 					out, err := createOutbound(resultOK, r)
@@ -176,8 +182,8 @@ func (r *Room) run() {
 					continue
 				}
 				send.from.send <- out
-		default:
-			log.Printf(send.from.name + "'s message is unknown")
+			default:
+				log.Printf(send.from.name + "'s message is unknown")
 			}
 		}
 	}
@@ -218,7 +224,7 @@ func (h *wsHandler) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 	roomId := r.FormValue("roomId")
 	if !newRoom {
 		canEnter, room := h.rooms.filterById(roomId)
-		if !canEnter  {
+		if !canEnter {
 			return
 		}
 		room.join <- client
@@ -242,17 +248,17 @@ func (h *wsHandler) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 func (h *wsHandler) GetRooms(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set( "Access-Control-Allow-Methods","GET, POST, PUT, DELETE, OPTIONS" )
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	if r.Method != http.MethodGet {
 		return
 	}
 	type RoomType struct {
-		Id string `json:"id"`
-		Num int `json:"num"`
-		MaxPlayer int `json:"max_player"`
-		Players []string `json:"players"`
+		Id        string   `json:"id"`
+		Num       int      `json:"num"`
+		MaxPlayer int      `json:"max_player"`
+		Players   []string `json:"players"`
 	}
 	type outType struct {
 		Rooms []RoomType `json:"rooms"`

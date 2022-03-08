@@ -10,34 +10,34 @@ import (
 
 type Client struct {
 	wsHandler *wsHandler
-	room *Room
-	id string
-	name string
-	Word string
-	conn *websocket.Conn
-	send chan []byte
-	close chan struct{}
+	room      *Room
+	id        string
+	name      string
+	Word      string
+	conn      *websocket.Conn
+	send      chan []byte
+	close     chan struct{}
 	wordState WordState
 }
 
 type Clients map[string]*Client
 
 func (c Clients) values() []*Client {
-    vs := []*Client{}
-    for _, v := range c {
-        vs = append(vs, v)
-    }
-    return vs
+	vs := []*Client{}
+	for _, v := range c {
+		vs = append(vs, v)
+	}
+	return vs
 }
 
 func (c *Client) write() {
 	// c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 	for {
 		select {
-		case <- c.close:
+		case <-c.close:
 			log.Printf("close client.write()")
 			return
-		case msg, ok := <- c.send:
+		case msg, ok := <-c.send:
 			if !ok {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
@@ -62,7 +62,10 @@ func (c *Client) read() {
 	}()
 	for {
 		if _, msg, err := c.conn.ReadMessage(); err == nil {
-			c.room.send <- struct{from *Client; body []byte}{from: c, body: msg}
+			c.room.send <- struct {
+				from *Client
+				body []byte
+			}{from: c, body: msg}
 		} else {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
