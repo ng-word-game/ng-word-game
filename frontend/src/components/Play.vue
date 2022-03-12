@@ -18,12 +18,14 @@
         </div>
         <div class="my-2 d-flex justify-content-center">
           <b-button v-if="nextTurn === user.Id" v-b-modal.modal-1 variant="outline-info" style="width: 80%;">
-            NGを選ぶ
+            文字を選ぶ
           </b-button>
           <p v-else>
             相手を待っています...
           </p>
         </div>
+        <p v-if="nextTurn === user.Id" class="text-center">制限時間</p>
+        <p v-if="nextTurn === user.Id" class="text-center">残り<span class="font-weight-bold" style="color: red;">{{ timer }}</span>秒</p>
       </div>
       <div class="card" style="height: 100%; width: 60%;">
         <div class="card-body">
@@ -47,7 +49,10 @@
                   <td class="text-center">
                     {{ v.name }}
                   </td>
-                  <td class="text-center">
+                  <td v-if="v.char === ''" class="text-center">
+                    時間切れ
+                  </td>
+                  <td v-else class="text-center">
                     {{ v.char }}
                   </td>
                 </tr>
@@ -107,6 +112,7 @@ export default defineComponent({
     const anotherUsersCharInfo = reactive<{id: string, chars: {char: string, isOpen: boolean, isHide: boolean}[]}[]>([])
     const thema = ref(store.data.thema)
     const ngCharas = ref(store.data.ng_chars)
+    const timer = ref(0)
     const registerNgChar = () => {
       modalRef.value.hide()
       if (!store.state.socket) {
@@ -117,12 +123,32 @@ export default defineComponent({
       ngChar.value = ''
     }
 
+    const timerId = ref()
+
+    const timerDown = () => {
+      timer.value = 60
+      const id = setInterval(() => {
+        if (timer.value < 1) {
+          registerNgChar()
+          clearInterval(id)
+          return
+        }
+        timer.value -= 1
+      }, 1000)
+      timerId.value = id
+    }
+
     onMounted(() => {
       setCharInfos()
+      timerDown()
     })
     watch(data, () => {
       setCharInfos()
       nextTurn.value = data.next_turn
+      if (nextTurn.value === user.Id) {
+        clearInterval(timerId.value)
+        timerDown()
+      }
       ngCharas.value = data.ng_chars
       console.log(ngCharas)
     }, { deep: true })
@@ -170,7 +196,8 @@ export default defineComponent({
       ngCharValid,
       modalRef,
       registerNgChar,
-      thema
+      thema,
+      timer
     }
   }
 })
