@@ -141,7 +141,9 @@ export default defineComponent({
 
     onMounted(() => {
       setCharInfos()
-      timerDown()
+      if (nextTurn.value === user.Id) {
+        timerDown()
+      }
     })
     watch(data, () => {
       setCharInfos()
