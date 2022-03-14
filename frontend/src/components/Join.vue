@@ -1,28 +1,37 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-    <div class="card" style="width: 75%;">
+  <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
+    <div class="card my-3" style="width: 75%;">
       <div class="card-body">
         <h4 class="card-title text-center">
           NG単語ゲーム
         </h4>
+        <p class="text-center">参加方法: 新しくルームを作成するか、募集中のルームに参加する</p>
         <div class="form-group d-flex flex-column justify-content-center">
           <h5 class="text-center">ユーザー名</h5>
           <input v-model="name" type="text" class="form-control" placeholder="ユーザー名">
           <div v-if="nameErr" class="form-text" style="color: red;">ユーザー名を入力してください</div>
-          <h5 class="mt-3 text-center">ルームを作成</h5>
-          <div class="mx-auto form-inline justify-content-center">
-            <label for="inputMaxPlayer">募集人数: </label>
-            <input id="inputMaxPlayer" type="number" v-model="maxPlayer" class="mx-2 form-control" placeholder="人数" style="width: 25%;">
-            <button v-if="!waiting" type="submit" class="btn btn-outline-info" :disabled="waiting" @click="createRoom">
-              ルームを作成
-            </button>
-            <p v-else-if="!connectError">
-              参加者を待っています....
-            </p>
-            <p v-if="connectError">サーバーと接続できません</p>
-          </div>
-          <div v-if="maxPlayerErr" class="form-text text-center" style="color: red;">募集人数は2人以上にしてください</div>
         </div>
+      </div>
+    </div>
+    <div class="card my-3" style="width: 75%;">
+      <div class="card-body">
+        <h5 class="text-center">ルームを作成</h5>
+        <div class="mx-auto form-inline justify-content-center">
+          <label for="inputMaxPlayer">募集人数: </label>
+          <input id="inputMaxPlayer" type="number" v-model="maxPlayer" class="mx-2 form-control" placeholder="人数" style="width: 25%;">
+          <button v-if="!waiting" type="submit" class="btn btn-outline-info" :disabled="waiting" @click="createRoom">
+            ルームを作成
+          </button>
+          <p v-else-if="!connectError">
+            参加者を待っています....
+          </p>
+          <p v-if="connectError">サーバーと接続できません</p>
+        </div>
+        <div v-if="maxPlayerErr" class="form-text text-center" style="color: red;">募集人数は2人以上にしてください</div>
+      </div>
+    </div>
+    <div class="card my-3" style="width: 75%;">
+      <div class="card-body">
         <h5 class="py-3 text-center">募集中のルーム</h5>
         <table class="table table-borderless">
           <thead>
@@ -42,6 +51,21 @@
         </table>
       </div>
     </div>
+    <b-modal id="modal-1"
+             ref="modalRef"
+             centered
+             hide-footer
+             hide-header
+             no-close-on-backdrop
+    >
+      <div class="d-block text-center">
+        <h3>参加者を待っています</h3>
+        <div v-if="roomInfo">
+          <h5 v-if="roomInfo.players">参加ユーザー: {{ roomInfo.players.join(', ') }}</h5>
+          <h5 v-if="roomInfo.num && roomInfo.max_player">{{ roomInfo.num }}/{{ roomInfo.max_player }}</h5>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -69,8 +93,11 @@ export default defineComponent({
     const waiting = ref(false)
     const connectError = ref(false)
     const clientId = generateUuid()
+    const modalRef = ref()
+    const roomId = ref('')
+    const roomInfo = ref()
 
-    const rooms = ref()
+    const rooms = ref<[{id: string}]>()
     const fetch = () => {
       axios.get(`http://${app.$config.apiURL}/rooms`).then((response) => {
         rooms.value = response.data.rooms
@@ -91,6 +118,14 @@ export default defineComponent({
         router.push({ name: 'odai' })
       }
     }, { deep: true })
+
+    watch(rooms, () => {
+      if (rooms.value) {
+        if (rooms.value.filter(item => item.id === roomId.value) !== []) {
+          roomInfo.value = rooms.value.filter(item => item.id === roomId.value)[0]
+        }
+      }
+    })
 
     function handleCloseEvent () {
       console.log('close')
@@ -128,7 +163,9 @@ export default defineComponent({
       store.setName(name.value)
       store.setClientId(clientId)
       waiting.value = true
-      const socket = new WebSocket(`ws://${app.$config.apiURL}/?id=${clientId}&name=${name.value}&roomId=${generateUuid()}&newRoom=true&maxPlayer=${maxPlayer.value}`)
+      modalRef.value.show()
+      roomId.value = generateUuid()
+      const socket = new WebSocket(`ws://${app.$config.apiURL}/?id=${clientId}&name=${name.value}&roomId=${roomId.value}&newRoom=true&maxPlayer=${maxPlayer.value}`)
       console.log(socket)
       socket.addEventListener('error', () => {
         connectError.value = true
@@ -155,7 +192,9 @@ export default defineComponent({
       store.setName(name.value)
       store.setClientId(clientId)
       waiting.value = true
-      const socket = new WebSocket(`ws://${app.$config.apiURL}/?id=${clientId}&roomId=${id}&newRoom=false&name=${name.value}&maxPlayer=0`)
+      modalRef.value.show()
+      roomId.value = id
+      const socket = new WebSocket(`ws://${app.$config.apiURL}/?id=${clientId}&roomId=${roomId.value}&newRoom=false&name=${name.value}&maxPlayer=0`)
       console.log(socket)
       socket.addEventListener('error', () => {
         connectError.value = true
@@ -182,7 +221,9 @@ export default defineComponent({
       rooms,
       joinRoom,
       nameErr,
-      maxPlayerErr
+      maxPlayerErr,
+      modalRef,
+      roomInfo
     }
   }
 })
