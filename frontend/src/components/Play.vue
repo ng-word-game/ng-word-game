@@ -44,7 +44,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody v-for="v in ngCharas" :key="v.name + v.char">
+              <tbody v-for="(v, idx) in ngCharas" :key="idx">
                 <tr>
                   <td class="text-center">
                     {{ v.name }}
@@ -114,6 +114,7 @@ export default defineComponent({
     const ngCharas = ref(store.data.ng_chars)
     const timer = ref(0)
     const registerNgChar = () => {
+      clearInterval(timerId.value)
       modalRef.value.hide()
       if (!store.state.socket) {
         console.log('websocket is not found')
@@ -129,8 +130,8 @@ export default defineComponent({
       timer.value = 60
       const id = setInterval(() => {
         if (timer.value < 1) {
+          ngChar.value = ''
           registerNgChar()
-          clearInterval(id)
           return
         }
         timer.value -= 1
