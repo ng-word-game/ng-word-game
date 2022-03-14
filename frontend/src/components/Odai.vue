@@ -12,6 +12,9 @@
           <span class="form-text">4~6文字でひらがなのみ</span>
           <input v-model="wordRef" type="text" class="form-control" placeholder="ことばをかく">
           <div v-if="wordValid" class="form-text" style="color: red;">4~6文字でひらがなのみを使用してください</div>
+          <div v-for="(word, idx) in suggestionsRef" :key="idx">
+            <div>{{ word }}</div>
+          </div>
           <div class="mx-auto mt-3">
             <button v-if="!waiting && wordValid" disabled type="submit" class="btn btn-outline-info" @click="registered">
               決定
@@ -31,6 +34,7 @@
 
 <script lang="ts">
 import { defineComponent, inject, ref, useRouter, onMounted, watch, reactive } from '@nuxtjs/composition-api'
+import axios from 'axios'
 import { key } from '../utils/store'
 import { STATE, SET } from '../utils/socket'
 
@@ -50,6 +54,7 @@ export default defineComponent({
     if (!store.state.socket) {
       router.push({ name: 'index' })
     }
+    const suggestionsRef = ref<string[]>([])
     onMounted(() => {
       thema.value = store.data.thema
     })
@@ -62,7 +67,27 @@ export default defineComponent({
     }, { deep: true })
     watch(wordRef, () => {
       wordValid.value = wordRef.value.match(/^[ぁ-んー　]{4,6}$/) == null
+      if (wordRef.value !== '' && wordValid.value) {
+        axios.get(`${location.protocol}//${location.host}/api/suggest/search?hl=ja&q=${wordRef.value}&output=toolbar`, { responseType: 'document' }).then((response) => {
+          const xml = response.data as XMLDocument
+          const suggestions = xml.querySelectorAll('suggestion')
+          suggestionsRef.value = []
+          for (let i = 0; i < suggestions.length; i++) {
+            if (suggestionsRef.value.length > 3) {
+              break
+            }
+            if (suggestions[i].getAttribute('data') == null) {
+              continue
+            }
+            if (suggestions[i].getAttribute('data')!.match(/.* +.*/) !== null) {
+              continue
+            }
+            suggestionsRef.value.push(suggestions[i].getAttribute('data') as string)
+          }
+        })
+      }
     })
+
     const registered = () => {
       store.setMyWord(wordRef.value)
       waiting.value = true
@@ -77,7 +102,8 @@ export default defineComponent({
       wordValid,
       thema,
       registered,
-      waiting
+      waiting,
+      suggestionsRef
     }
   }
 })
