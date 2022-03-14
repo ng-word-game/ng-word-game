@@ -9,9 +9,9 @@
           {{ thema }}
         </h1>
         <div class="form-group d-flex flex-column justify-content-center mt-4">
-          <span class="form-text">ひらがなのみ</span>
+          <span class="form-text">4~6文字でひらがなのみ</span>
           <input v-model="wordRef" type="text" class="form-control" placeholder="ことばをかく">
-          <div v-if="wordValid" class="form-text" style="color: red;">ひらがなのみを使用してください</div>
+          <div v-if="wordValid" class="form-text" style="color: red;">4~6文字でひらがなのみを使用してください</div>
           <div class="mx-auto mt-3">
             <button v-if="!waiting && wordValid" disabled type="submit" class="btn btn-outline-info" @click="registered">
               決定
@@ -61,7 +61,7 @@ export default defineComponent({
       }
     }, { deep: true })
     watch(wordRef, () => {
-      wordValid.value = wordRef.value.match(/^[ぁ-んー　]*$/) == null
+      wordValid.value = wordRef.value.match(/^[ぁ-んー　]{4,6}$/) == null
     })
     const registered = () => {
       store.setMyWord(wordRef.value)
