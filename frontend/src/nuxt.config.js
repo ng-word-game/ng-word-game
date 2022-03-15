@@ -62,6 +62,7 @@ export default {
   build: {
   },
   publicRuntimeConfig: {
-    apiURL: process.env.API_URL || '0.0.0.0:443'
+    apiURL: process.env.API_URL || '0.0.0.0:443',
+    apiKey: 'df81edfd26d158f74e2b386bb5099cf6ba46e9ab4e16d00a480eba2f2dfd2941'
   }
 }
