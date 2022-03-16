@@ -33,12 +33,12 @@ func httpToWS(t *testing.T, u string) string {
 	return wsURL.String()
 }
 
-func newWSServer(t *testing.T, h *wsHandler, userName string, newRoom bool, roomId string, maxPlayer int) (*httptest.Server, *websocket.Conn) {
+func newWSServer(t *testing.T, h *wsHandler, userId string, userName string, newRoom bool, roomId string, maxPlayer int) (*httptest.Server, *websocket.Conn) {
 	t.Helper()
 
 	s := httptest.NewServer(http.HandlerFunc(h.ServeWebsocket))
 	wsURL := ""
-	wsURL = httpToWS(t, s.URL) + fmt.Sprintf("?id=%s&roomId=%v&newRoom=%v&maxPlayer=%v&name=%v", randomString(10), roomId, newRoom, maxPlayer, userName)
+	wsURL = httpToWS(t, s.URL) + fmt.Sprintf("?id=%s&roomId=%v&newRoom=%v&maxPlayer=%v&name=%v", userId, roomId, newRoom, maxPlayer, userName)
 
 	ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
@@ -100,6 +100,7 @@ func TestCreateRoom(t *testing.T) {
 	tcs := []struct {
 		name  string
 		users []struct {
+			userId string
 			userName string
 			roomId   string
 			newRoom  bool
@@ -110,33 +111,66 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name: "1 user",
 			users: []struct {
+				userId string
 				userName string
 				roomId   string
 				newRoom  bool
-			}{{userName: "usr1", roomId: "room1", newRoom: true}},
+			}{{
+				userId:   "usr1",
+				userName: "usr1",
+				roomId: "room1",
+				newRoom: true,
+			}},
 			maxPlayer: 2,
 			roomCount: 1,
 		},
 		{
 			name: "2 users",
 			users: []struct {
+				userId string
 				userName string
 				roomId   string
 				newRoom  bool
-			}{{userName: "usr1", roomId: "room1", newRoom: true}, {userName: "usr2", roomId: "room1", newRoom: false}},
+			}{{
+				userId:   "usr2",
+				userName: "usr1",
+				roomId: "room1",
+				newRoom: true,
+			}, {
+				userId:   "usr2",
+				userName: "usr2",
+				roomId: "room1",
+				newRoom: false,
+			}},
 			maxPlayer: 2,
 			roomCount: 1,
 		},
 		{
 			name: "3 users in 2 rooms",
 			users: []struct {
+				userId string
 				userName string
 				roomId   string
 				newRoom  bool
 			}{
-				{userName: "usr1", roomId: "room1", newRoom: true},
-				{userName: "usr2", roomId: "room1", newRoom: false},
-				{userName: "usr3", roomId: "room2", newRoom: true},
+				{
+					userId:   "usr1",
+					userName: "usr1",
+					roomId: "room1",
+					newRoom: true,
+				},
+				{
+					userId:   "usr2",
+					userName: "usr2",
+					roomId: "room1",
+					newRoom: false,
+				},
+				{
+					userId:   "usr3",
+					userName: "usr3",
+					roomId: "room2",
+					newRoom: true,
+				},
 			},
 			maxPlayer: 2,
 			roomCount: 2,
@@ -144,13 +178,29 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name: "3 users in 1 rooms",
 			users: []struct {
+				userId string
 				userName string
 				roomId   string
 				newRoom  bool
 			}{
-				{userName: "usr1", roomId: "room1", newRoom: true},
-				{userName: "usr2", roomId: "room1", newRoom: false},
-				{userName: "usr3", roomId: "room2", newRoom: false},
+				{
+					userId:   "usr1",
+					userName: "usr1",
+					roomId: "room1",
+					newRoom: true,
+				},
+				{
+					userId:   "usr2",
+					userName: "usr2",
+					roomId: "room1",
+					newRoom: false,
+				},
+				{
+					userId:   "usr3",
+					userName: "usr3",
+					roomId: "room2",
+					newRoom: false,
+				},
 			},
 			maxPlayer: 3,
 			roomCount: 1,
@@ -158,20 +208,71 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name: "10 users in 5 rooms",
 			users: []struct {
+				userId string
 				userName string
 				roomId   string
 				newRoom  bool
 			}{
-				{userName: "usr1", roomId: "room1", newRoom: true},
-				{userName: "usr2", roomId: "room1", newRoom: false},
-				{userName: "usr3", roomId: "room2", newRoom: true},
-				{userName: "usr4", roomId: "room2", newRoom: false},
-				{userName: "usr5", roomId: "room3", newRoom: true},
-				{userName: "usr6", roomId: "room3", newRoom: false},
-				{userName: "usr7", roomId: "room4", newRoom: true},
-				{userName: "usr8", roomId: "room4", newRoom: false},
-				{userName: "usr9", roomId: "room5", newRoom: true},
-				{userName: "usr10", roomId: "room5", newRoom: false},
+				{
+					userId:   "usr1",
+					userName: "usr1",
+					roomId: "room1",
+					newRoom: true,
+				},
+				{
+					userId:   "usr2",
+					userName: "usr2",
+					roomId: "room1",
+					newRoom: false,
+				},
+				{
+					userId:   "usr3",
+					userName: "usr3",
+					roomId: "room2",
+					newRoom: true,
+				},
+				{
+					userId:   "usr4",
+					userName: "usr4",
+					roomId: "room2",
+					newRoom: false,
+				},
+				{
+					userId:   "usr5",
+					userName: "usr5",
+					roomId: "room3",
+					newRoom: true,
+				},
+				{
+					userId:   "usr6",
+					userName: "usr6",
+					roomId: "room3",
+					newRoom: false,
+				},
+				{
+					userId:   "usr7",
+					userName: "usr7",
+					roomId: "room4",
+					newRoom: true,
+				},
+				{
+					userId:   "usr8",
+					userName: "usr8",
+					roomId: "room4",
+					newRoom: false,
+				},
+				{
+					userId:   "usr9",
+					userName: "usr9",
+					roomId: "room5",
+					newRoom: true,
+				},
+				{
+					userId:   "usr10",
+					userName: "usr10",
+					roomId: "room5",
+					newRoom: false,
+				},
 			},
 			maxPlayer: 2,
 			roomCount: 5,
@@ -179,20 +280,71 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name: "10 users in 2 rooms",
 			users: []struct {
+				userId string
 				userName string
 				roomId   string
 				newRoom  bool
 			}{
-				{userName: "usr1", roomId: "room1", newRoom: true},
-				{userName: "usr2", roomId: "room1", newRoom: false},
-				{userName: "usr3", roomId: "room1", newRoom: false},
-				{userName: "usr4", roomId: "room1", newRoom: false},
-				{userName: "usr5", roomId: "room1", newRoom: false},
-				{userName: "usr6", roomId: "room2", newRoom: true},
-				{userName: "usr7", roomId: "room2", newRoom: false},
-				{userName: "usr8", roomId: "room2", newRoom: false},
-				{userName: "usr9", roomId: "room2", newRoom: false},
-				{userName: "usr10", roomId: "room2", newRoom: false},
+				{
+					userId:   "usr1",
+					userName: "usr1",
+					roomId: "room1",
+					newRoom: true,
+				},
+				{
+					userId:   "usr2",
+					userName: "usr2",
+					roomId: "room1",
+					newRoom: false,
+				},
+				{
+					userId:   "usr3",
+					userName: "usr3",
+					roomId: "room1",
+					newRoom: false,
+				},
+				{
+					userId:   "usr4",
+					userName: "usr4",
+					roomId: "room1",
+					newRoom: false,
+				},
+				{
+					userId:   "usr5",
+					userName: "usr5",
+					roomId: "room1",
+					newRoom: false,
+				},
+				{
+					userId:   "usr6",
+					userName: "usr6",
+					roomId: "room2",
+					newRoom: true,
+				},
+				{
+					userId:   "usr7",
+					userName: "usr7",
+					roomId: "room2",
+					newRoom: false,
+				},
+				{
+					userId:   "usr8",
+					userName: "usr8",
+					roomId: "room2",
+					newRoom: false,
+				},
+				{
+					userId:   "usr9",
+					userName: "usr9",
+					roomId: "room2",
+					newRoom: false,
+				},
+				{
+					userId:   "usr10",
+					userName: "usr10",
+					roomId: "room2",
+					newRoom: false,
+				},
 			},
 			maxPlayer: 5,
 			roomCount: 2,
@@ -204,7 +356,7 @@ func TestCreateRoom(t *testing.T) {
 			h := NewWshandler()
 
 			for _, v := range tt.users {
-				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
+				s, ws := newWSServer(t, h, v.userId, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
 				defer func() {
 					log.Printf("close")
 					s.Close()
@@ -281,6 +433,7 @@ func TestFillPlayerMsg(t *testing.T) {
 	tcs := []struct {
 		name  string
 		users []struct {
+			userId string
 			userName string
 			roomId   string
 			newRoom  bool
@@ -292,12 +445,23 @@ func TestFillPlayerMsg(t *testing.T) {
 		{
 			name: "1 user",
 			users: []struct {
+				userId string
 				userName string
 				roomId   string
 				newRoom  bool
 			}{
-				{userName: "usr1", roomId: "room1", newRoom: true},
-				{userName: "usr2", roomId: "room1", newRoom: false},
+				{
+					userId:   "usr1",
+					userName: "usr1",
+					roomId: "room1",
+					newRoom: true,
+				},
+				{
+					userId:   "usr2",
+					userName: "usr2",
+					roomId: "room1",
+					newRoom: false,
+				},
 			},
 			maxPlayer: 2,
 			roomCount: 1,
@@ -334,7 +498,7 @@ func TestFillPlayerMsg(t *testing.T) {
 				}
 			}()
 			for _, v := range tt.users {
-				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
+				s, ws := newWSServer(t, h, v.userId, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
@@ -389,6 +553,7 @@ func TestSetWord(t *testing.T) {
 	tcs := []struct {
 		name  string
 		users []struct {
+			userId string
 			userName string
 			word     string
 			roomId   string
@@ -401,11 +566,18 @@ func TestSetWord(t *testing.T) {
 		{
 			name: "1 user",
 			users: []struct {
+				userId string
 				userName string
 				word     string
 				roomId   string
 				newRoom  bool
-			}{{userName: "usr1", word: "word1", roomId: "room1", newRoom: true}},
+			}{{
+				userId:   "usr1",
+				userName: "usr1",
+				word: "word1",
+				roomId: "room1",
+				newRoom: true,
+			}},
 			maxPlayer: 2,
 			roomCount: 1,
 			reply: outbound{
@@ -442,7 +614,7 @@ func TestSetWord(t *testing.T) {
 			}()
 
 			for _, v := range tt.users {
-				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
+				s, ws := newWSServer(t, h, v.userId, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
@@ -475,34 +647,10 @@ func TestSetWord(t *testing.T) {
 
 func TestStartGame(t *testing.T) {
 	defer goleak.VerifyNone(t)
-	// tcs := []struct {
-	// 	name string
-	// 	users []struct {
-	// 		userName string
-	// 		word string
-	// 	}
-	// 	reply outbound
-	// }{
-	// 	{
-	// 		name: "2 user",
-	// 		users: []struct {
-	// 			userName string
-	// 			word string
-	// 		}{{userName: "usr1", word: "word1"},{userName: "usr2", word: "word2"}},
-	// reply: outbound{
-	// 	Result:    resultOK,
-	// 	GameState: GameStart,
-	// 	Thema:     "",
-	// 	Users:     []struct{Id string; Name string}{
-	// 		struct{Id string; Name string}{Id: "", Name: "usr1"},
-	// 	},
-	// 	Words:     map[string]string{"usr1": "word1", "usr2": "word2"},
-	// },
-	// 	},
-	// }
 	tcs := []struct {
 		name  string
 		users []struct {
+			userId string
 			userName string
 			word     string
 			roomId   string
@@ -515,13 +663,26 @@ func TestStartGame(t *testing.T) {
 		{
 			name: "2 user",
 			users: []struct {
+				userId string
 				userName string
 				word     string
 				roomId   string
 				newRoom  bool
 			}{
-				{userName: "usr1", word: "word1", roomId: "room1", newRoom: true},
-				{userName: "usr2", word: "word2", roomId: "room1", newRoom: false},
+				{
+					userId:   "usr1",
+					userName: "usr1",
+					word: "word1",
+					roomId: "room1",
+					newRoom: true,
+				},
+				{
+					userId:   "usr2",
+					userName: "usr2",
+					word: "word2",
+					roomId: "room1",
+					newRoom: false,
+				},
 			},
 			maxPlayer: 2,
 			roomCount: 1,
@@ -557,17 +718,18 @@ func TestStartGame(t *testing.T) {
 				}
 			}()
 			for _, v := range tt.users[:len(tt.users)-1] {
-				s, ws := newWSServer(t, h, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
+				s, ws := newWSServer(t, h, v.userId, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
 				servers = append(servers, s)
 				connections = append(connections, ws)
 
 				log.Println(receiveWSMessage(t, ws, 1))
 				sendMessage(t, ws, inbound{
+					Type: setWord,
 					Word: v.word,
 				})
 				log.Println(receiveWSMessage(t, ws, 1))
 			}
-			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userName, tt.users[len(tt.users)-1].newRoom, tt.users[len(tt.users)-1].roomId, tt.maxPlayer)
+			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userId, tt.users[len(tt.users)-1].userName, tt.users[len(tt.users)-1].newRoom, tt.users[len(tt.users)-1].roomId, tt.maxPlayer)
 			servers = append(servers, s)
 			connections = append(connections, ws)
 			log.Println(receiveWSMessage(t, ws, 1))
@@ -579,6 +741,121 @@ func TestStartGame(t *testing.T) {
 			reply := replys[1]
 			if !(reply.GameState == tt.reply.GameState && reflect.DeepEqual(reply.Words, tt.reply.Words)) {
 				t.Fatalf("Expexted '%v', got '%v'", tt.reply, reply)
+			}
+		})
+	}
+}
+
+func TestSetNgChar(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	tcs := []struct {
+		name  string
+		users []struct {
+			userId string
+			userName string
+			word     string
+			ngChar string
+			roomId   string
+			newRoom  bool
+		}
+		maxPlayer int
+		roomCount int
+		reply     outbound
+	}{
+		{
+			name: "2 user",
+			users: []struct {
+				userId string
+				userName string
+				word     string
+				ngChar string
+				roomId   string
+				newRoom  bool
+			}{
+				{
+					userId: "usr1",
+					userName: "usr1",
+					word: "word1",
+					ngChar: "a",
+					roomId: "room1",
+					newRoom: true,
+				},
+				{
+					userId: "usr2",
+					userName: "usr2",
+					word: "word2",
+					ngChar: "b",
+					roomId: "room1",
+					newRoom: false,
+				},
+			},
+			maxPlayer: 2,
+			roomCount: 1,
+			reply: outbound{
+				Result:    resultOK,
+				GameState: GameStart,
+				Thema:     "",
+				Users: []struct {
+					Id   string
+					Name string
+				}{
+					struct {
+						Id   string
+						Name string
+					}{Id: "", Name: "usr1"},
+				},
+				Words: map[string]string{"usr1": "word1", "usr2": "word2"},
+				NgChars: []NgChar{{Name: "usr1", Char: "a"}, {Name: "usr2", Char: "b"}},
+			},
+		},
+	}
+
+	for _, tt := range tcs {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewWshandler()
+			servers := []*httptest.Server{}
+			connections := []*websocket.Conn{}
+			defer func() {
+				for _, s := range servers {
+					s.Close()
+				}
+				for _, ws := range connections {
+					ws.Close()
+				}
+			}()
+			for _, v := range tt.users[:len(tt.users)-1] {
+				s, ws := newWSServer(t, h, v.userId, v.userName, v.newRoom, v.roomId, tt.maxPlayer)
+				servers = append(servers, s)
+				connections = append(connections, ws)
+
+				log.Println(receiveWSMessage(t, ws, 1))
+				sendMessage(t, ws, inbound{
+					Type: setWord,
+					Word: v.word,
+				})
+				log.Println(receiveWSMessage(t, ws, 1))
+				sendMessage(t, ws, inbound{
+					Type: setNgChar,
+					NgChar: v.ngChar,
+				})
+			}
+			s, ws := newWSServer(t, h, tt.users[len(tt.users)-1].userId, tt.users[len(tt.users)-1].userName, tt.users[len(tt.users)-1].newRoom, tt.users[len(tt.users)-1].roomId, tt.maxPlayer)
+			servers = append(servers, s)
+			connections = append(connections, ws)
+			log.Println(receiveWSMessage(t, ws, 1))
+			sendMessage(t, ws, inbound{
+				Type: setWord,
+				Word: tt.users[len(tt.users)-1].word,
+			})
+			replys := receiveWSMessage(t, ws, 2)
+			sendMessage(t, ws, inbound{
+				Type: setNgChar,
+				NgChar: tt.users[len(tt.users)-1].ngChar,
+			})
+			log.Println(replys)
+			reply := replys[1]
+			if !(reply.GameState == tt.reply.GameState && reflect.DeepEqual(reply.NgChars, tt.reply.NgChars)) {
+				t.Fatalf("Expexted '%v', got '%v'", tt.reply.NgChars, reply.NgChars)
 			}
 		})
 	}
