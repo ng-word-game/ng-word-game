@@ -24,8 +24,16 @@
             相手を待っています...
           </p>
         </div>
-        <p v-if="nextTurn === user.Id" class="text-center">制限時間</p>
-        <p v-if="nextTurn === user.Id" class="text-center">残り<span class="font-weight-bold" style="color: red;">{{ timer }}</span>秒</p>
+        <div class="d-flex">
+          <div class="text-center" style="width: 50%;">
+            <p>制限時間</p>
+            <p v-if="nextTurn === user.Id">残り<span class="font-weight-bold" style="color: red;">{{ timer }}</span>秒</p>
+          </div>
+          <div class="text-center" style="width: 50%;">
+            <p>ターン</p>
+            <p class="font-weight-bold">{{ turn }}</p>
+          </div>
+        </div>
       </div>
       <div class="card" style="height: 100%; width: 60%;">
         <div class="card-body">
@@ -113,6 +121,7 @@ export default defineComponent({
     const thema = ref(store.data.thema)
     const ngCharas = ref(store.data.ng_chars)
     const timer = ref(0)
+    const turn = ref(0)
     const registerNgChar = () => {
       clearInterval(timerId.value)
       modalRef.value.hide()
@@ -148,6 +157,7 @@ export default defineComponent({
     watch(data, () => {
       setCharInfos()
       nextTurn.value = data.next_turn
+      turn.value = data.turn
       if (nextTurn.value === user.Id) {
         clearInterval(timerId.value)
         timerDown()
@@ -200,7 +210,8 @@ export default defineComponent({
       modalRef,
       registerNgChar,
       thema,
-      timer
+      timer,
+      turn
     }
   }
 })

@@ -10,6 +10,7 @@ export interface Store {
   data: {
     readonly game_state: number
     readonly next_turn: string
+    readonly turn: number
     readonly result: number
     readonly thema: string
     readonly users: [{ Id: string, Name: string }]

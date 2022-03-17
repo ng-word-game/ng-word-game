@@ -12,6 +12,7 @@ interface InterfaceState {
 const initialData = reactive<InterfaceSocketData>({
   game_state: STATE.Initial,
   next_turn: '',
+  turn: 0,
   result: 0,
   thema: '',
   users: null,
