@@ -38,6 +38,7 @@ type outbound struct {
 	NextTurn  string               `json:"next_turn"`
 	Winner    string               `json:"winner"`
 	NgChars   []NgChar             `json:"ng_chars"`
+	Turn int `json:"turn"`
 }
 
 func createOutbound(result int, room *Room) ([]byte, error) {
@@ -73,6 +74,7 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 		NextTurn:  nextTurn,
 		Winner:    room.winner,
 		NgChars:   room.ngChars,
+		Turn:      room.gameTurn,
 	})
 	if err != nil {
 		return nil, err

@@ -12,6 +12,7 @@ type Room struct {
 	available     bool
 	clients       Clients
 	gameState     int
+	gameTurn int
 	thema         string
 	nextClientIdx int
 	clientIds     []string
@@ -49,6 +50,7 @@ func NewRoom(id string, maxPlayer int) *Room {
 		available:     true,
 		clients:       map[string]*Client{},
 		gameState:     Initial,
+		gameTurn:      0,
 		thema:         themas[rand.Intn(len(themas))],
 		nextClientIdx: 0,
 		clientIds:     []string{},
@@ -134,6 +136,7 @@ func (r *Room) changeTurn() {
 		} else {
 			r.nextClientIdx = 0
 		}
+		r.gameTurn++
 	})
 }
 
