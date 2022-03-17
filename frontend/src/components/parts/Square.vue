@@ -2,29 +2,29 @@
 <template>
   <div>
     <div class="d-flex">
-      <div v-for="(v, idx) in props.charaInfo" :key="idx" class="mx-2">
+      <div v-for="(v, idx) in props.charaInfo" :key="idx">
         <div v-if="v.isHide">
           <div v-if="isSmall(v.char)" class="circle--small hide">・</div>
-          <div v-else-if="isDakuon(v.char)" style="position: relative;">
+          <div v-else-if="isDakuon(v.char)" class="mx-2" style="position: relative;">
             <div class="circle hide">・</div>
-            <div class="dakuten hide" style="position: absolute; top: 0;"></div>
+            <div class="dakuten hide" style="position: absolute; top: 0; right: -13px;"></div>
           </div>
-          <div v-else-if="isHanDakuon(v.char)" style="position: relative;">
+          <div v-else-if="isHanDakuon(v.char)" class="mx-2" style="position: relative;">
             <div class="circle hide">・</div>
-            <div class="dakuten hide" style="position: absolute; top: 0;"></div>
+            <div class="dakuten hide" style="position: absolute; top: 0; right: -13px;"></div>
           </div>
-          <div v-else class="circle hide">・</div>
+          <div v-else class="circle hide mx-2">・</div>
         </div>
         <div v-else-if="isSmall(v.char)" class="circle--small">{{ changeChar[v.char] }}</div>
-        <div v-else-if="isDakuon(v.char)" style="position: relative;">
+        <div v-else-if="isDakuon(v.char)" class="mx-2" style="position: relative;">
           <div class="circle">{{ changeChar[v.char] }}</div>
-          <div class="dakuten" style="position: absolute; top: 0;">゛</div>
+          <div class="dakuten" style="position: absolute; top: 0; right: -13px;">〃</div>
         </div>
-        <div v-else-if="isHanDakuon(v.char)" style="position: relative;">
+        <div v-else-if="isHanDakuon(v.char)" class="mx-2" style="position: relative;">
           <div class="circle">{{ changeChar[v.char] }}</div>
-          <div class="dakuten" style="position: absolute; top: 0;">゜</div>
+          <div class="dakuten" style="position: absolute; top: 0; right: -13px; font-size: 10px;">○</div>
         </div>
-        <div v-else class="circle">
+        <div v-else class="circle mx-2">
           {{ v.char }}
         </div>
       </div>
@@ -96,7 +96,7 @@ export default defineComponent({
   border-radius: 50%;
   text-align:center;
   line-height: 16px;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 .circle--dakuten {
   display: inline-block;
@@ -111,11 +111,11 @@ export default defineComponent({
 .dakuten {
   display: inline-block;
   border: 1.2px solid;
-  width: 10px;
-  height: 10px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   text-align:center;
-  line-height: 20px;
+  line-height: 12px;
 }
 .opened {
   background-color: gray;
