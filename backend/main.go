@@ -25,10 +25,11 @@ func main() {
 }
 
 func loggingSettings(filename string) {
-	if f, err := os.Stat("./.logs"); os.IsNotExist(err) || !f.IsDir() {
-		os.Mkdir(".logs", 0777)
+	if f, err := os.Stat("/.logs"); os.IsNotExist(err) || !f.IsDir() {
+		err := os.Mkdir("/.logs", 0777)
+		log.Println(err)
 	}
-	logfile, err := os.OpenFile("./.logs/" + filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logfile, err := os.OpenFile("/.logs/" + filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}

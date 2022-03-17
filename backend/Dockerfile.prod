@@ -24,6 +24,4 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifi
 
 EXPOSE 8080
 
-USER myapp
-
 ENTRYPOINT ["/go/bin/app"]

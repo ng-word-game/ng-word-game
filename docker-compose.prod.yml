@@ -9,6 +9,7 @@ services:
       - 443:443
     volumes:
       - ./backend:/go/src/github.com/kikils/go-websocket
+      - ./logs/backend:/.logs
 
   nginx:
       build: 
