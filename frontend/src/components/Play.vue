@@ -53,7 +53,7 @@
                 </tr>
               </thead>
               <tbody id="ng-table-body">
-                <tr ref="tableRef" v-for="(v, idx) in ngCharas" :key="idx">
+                <tr ref="tableRef" v-for="(v, idx) in ngCharas.filter(item => item.char !== 'L')" :key="idx">
                   <td class="text-center">
                     {{ v.name }}
                   </td>
@@ -163,6 +163,7 @@ export default defineComponent({
       turn.value = data.turn
       ngCharas.value = data.ng_chars
       if (nextTurn.value === user.Id && checkLose()) {
+        ngChar.value = 'L'
         registerNgChar()
         return
       }
