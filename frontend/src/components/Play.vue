@@ -161,12 +161,15 @@ export default defineComponent({
       setCharInfos()
       nextTurn.value = data.next_turn
       turn.value = data.turn
+      ngCharas.value = data.ng_chars
+      if (nextTurn.value === user.Id && checkLose()) {
+        registerNgChar()
+        return
+      }
       if (nextTurn.value === user.Id) {
         clearInterval(timerId.value)
         timerDown()
       }
-      ngCharas.value = data.ng_chars
-      console.log(ngCharas)
     }, { deep: true })
 
     watch(tableRef, () => {
@@ -178,6 +181,13 @@ export default defineComponent({
       ngCharValid.value = ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
       checkDuplicateNgChar.value = ngCharas.value.filter(item => item.char === ngChar.value).length > 0
     })
+
+    const checkLose = () => {
+      if (!userCharInfo.value) {
+        return false
+      }
+      return userCharInfo.value.filter(item => item.isOpen).length === userCharInfo.value.length
+    }
     // const charaInfo: CharaInfoInterface[] = [{
     //   char: 'こ',
     //   isOpen: false,
