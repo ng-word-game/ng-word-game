@@ -41,8 +41,8 @@
             NGリスト
           </h5>
           <div class="table-responsive" style="height: 80%;">
-            <table class="table table-sm">
-              <thead>
+            <table class="table table-sm table-striped">
+              <thead class="table-light" style="position: sticky; top: 0;">
                 <tr>
                   <th class="text-center" scope="col">
                     名前
@@ -52,8 +52,8 @@
                   </th>
                 </tr>
               </thead>
-              <tbody v-for="(v, idx) in ngCharas" :key="idx">
-                <tr>
+              <tbody id="ng-table-body">
+                <tr ref="tableRef" v-for="(v, idx) in ngCharas" :key="idx">
                   <td class="text-center">
                     {{ v.name }}
                   </td>
@@ -122,6 +122,7 @@ export default defineComponent({
     const ngCharas = ref(store.data.ng_chars)
     const timer = ref(0)
     const turn = ref(0)
+    const tableRef = ref()
     const registerNgChar = () => {
       clearInterval(timerId.value)
       modalRef.value.hide()
@@ -165,6 +166,11 @@ export default defineComponent({
       ngCharas.value = data.ng_chars
       console.log(ngCharas)
     }, { deep: true })
+
+    watch(tableRef, () => {
+      const ngLast = document.querySelector('#ng-table-body > tr:last-child')
+      ngLast.scrollIntoView()
+    })
 
     watch(ngChar, () => {
       ngCharValid.value = ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
@@ -211,7 +217,8 @@ export default defineComponent({
       registerNgChar,
       thema,
       timer,
-      turn
+      turn,
+      tableRef
     }
   }
 })
