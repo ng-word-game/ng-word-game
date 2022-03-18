@@ -178,8 +178,8 @@ export default defineComponent({
     })
 
     watch(ngChar, () => {
-      ngCharValid.value = ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
-      checkDuplicateNgChar.value = ngCharas.value.filter(item => item.char === ngChar.value).length > 0
+      ngCharValid.value = ngChar.value !== '' && ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
+      checkDuplicateNgChar.value = ngChar.value !== '' && ngCharas.value.filter(item => item.char === ngChar.value).length > 0
     })
 
     const checkLose = () => {
