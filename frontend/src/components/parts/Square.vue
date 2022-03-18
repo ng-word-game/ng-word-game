@@ -15,16 +15,16 @@
           </div>
           <div v-else class="circle hide mx-2">・</div>
         </div>
-        <div v-else-if="isSmall(v.char)" class="circle--small">{{ changeChar[v.char] }}</div>
+        <div v-else-if="isSmall(v.char)" class="circle--small" :class="[v.isOpen ? 'opened' : '']">{{ changeChar[v.char] }}</div>
         <div v-else-if="isDakuon(v.char)" class="mx-2" style="position: relative;">
-          <div class="circle">{{ changeChar[v.char] }}</div>
-          <div class="dakuten" style="position: absolute; top: 0; right: -13px;">〃</div>
+          <div class="circle" :class="[v.isOpen ? 'opened' : '']">{{ changeChar[v.char] }}</div>
+          <div class="dakuten" :class="[v.isOpen ? 'opened' : '']" style="position: absolute; top: 0; right: -13px;">〃</div>
         </div>
         <div v-else-if="isHanDakuon(v.char)" class="mx-2" style="position: relative;">
-          <div class="circle">{{ changeChar[v.char] }}</div>
-          <div class="dakuten" style="position: absolute; top: 0; right: -13px; font-size: 10px;">○</div>
+          <div class="circle" :class="[v.isOpen ? 'opened' : '']">{{ changeChar[v.char] }}</div>
+          <div class="dakuten" :class="[v.isOpen ? 'opened' : '']" style="position: absolute; top: 0; right: -13px; font-size: 10px;">○</div>
         </div>
-        <div v-else class="circle mx-2">
+        <div v-else class="circle mx-2" :class="[v.isOpen ? 'opened' : '']">
           {{ v.char }}
         </div>
       </div>
@@ -118,7 +118,7 @@ export default defineComponent({
   line-height: 12px;
 }
 .opened {
-  background-color: gray;
+  background-color: #dbdbdc;
 }
 .hide {
   background-color: black;
