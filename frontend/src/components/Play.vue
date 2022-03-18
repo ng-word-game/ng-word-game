@@ -171,7 +171,7 @@ export default defineComponent({
 
     watch(tableRef, () => {
       const ngLast = document.querySelector('#ng-table-body > tr:last-child')
-      ngLast.scrollIntoView()
+      ngLast!.scrollIntoView()
     })
 
     watch(ngChar, () => {
