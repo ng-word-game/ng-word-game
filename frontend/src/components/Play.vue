@@ -82,6 +82,7 @@
       </div>
       <input v-model="ngChar" type="text" class="form-control" placeholder="">
       <div v-if="ngCharValid" class="form-text" style="color: red;">ひらがな1文字のみ入力できます</div>
+      <div v-if="checkDuplicateNgChar" class="form-text" style="color: red;">すでにNG文字です</div>
       <b-button :disabled="ngCharValid" class="mt-2" variant="outline-info" block @click="registerNgChar">
         決定
       </b-button>
@@ -113,6 +114,7 @@ export default defineComponent({
     const anotherUsers = store.data.users.filter(u => u.Id !== store.state.clientId)
     const ngChar = ref('')
     const ngCharValid = ref(true)
+    const checkDuplicateNgChar = ref(false)
     const modalRef = ref()
     const data = reactive(store.data)
     const nextTurn = ref(store.data.next_turn)
@@ -174,6 +176,7 @@ export default defineComponent({
 
     watch(ngChar, () => {
       ngCharValid.value = ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
+      checkDuplicateNgChar.value = ngCharas.value.filter(item => item.char === ngChar.value).length > 0
     })
     // const charaInfo: CharaInfoInterface[] = [{
     //   char: 'こ',
@@ -213,6 +216,7 @@ export default defineComponent({
       ngCharas,
       ngChar,
       ngCharValid,
+      checkDuplicateNgChar,
       modalRef,
       registerNgChar,
       thema,
