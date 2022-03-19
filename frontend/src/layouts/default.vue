@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, provide, inject, watch, ref, reactive, onUnmounted, onMounted } from '@nuxtjs/composition-api'
+import { defineComponent, provide, inject, watch, ref, reactive, onDeactivated, onMounted } from '@nuxtjs/composition-api'
 import store, { key } from '../utils/store'
 import { STATE, SET } from '../utils/socket'
 
@@ -45,7 +45,7 @@ export default defineComponent({
       }
     })
 
-    onUnmounted(() => {
+    onDeactivated(() => {
       if (state.value.socket) {
         state.value.socket.close()
       }
