@@ -43,6 +43,11 @@ type outbound struct {
 
 func createOutbound(result int, room *Room) ([]byte, error) {
 	room.mux.RLock()
+	defer func() {
+		if err:=recover(); err!=nil {
+			log.Println(err)
+		 }
+	}()
 	defer room.mux.RUnlock()
 	clientNames := []struct {
 		Id   string
@@ -61,8 +66,10 @@ func createOutbound(result int, room *Room) ([]byte, error) {
 	}
 
 	nextTurn := ""
-	if 0 <= room.nextClientIdx && room.nextClientIdx < len(room.clients) {
-		nextTurn = room.clients[room.clientIds[room.nextClientIdx]].id
+	if 0 <= room.nextClientIdx && room.nextClientIdx < len(room.clientIds) {
+		if room.clients[room.clientIds[room.nextClientIdx]] != nil {
+			nextTurn = room.clients[room.clientIds[room.nextClientIdx]].id
+		}
 	}
 	out, err := json.Marshal(outbound{
 		Result:    result,
