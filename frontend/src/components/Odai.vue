@@ -17,8 +17,8 @@
             <div>{{ word }}</div>
           </div>
           <div class="text-center">
-            <a v-if="suggestionsRef" href="http://www.goo.ne.jp/">
-              <img src="//u.xgoo.jp/img/sgoo.png" alt="supported by goo" title="supported by goo" style="width: 5%;">
+            <a v-if="suggestionsRef" target="_blank" href="http://www.goo.ne.jp/">
+              <img src="//u.xgoo.jp/img/sgoo.png" alt="supported by goo" title="supported by goo" style="width: 15%;">
             </a>
           </div>
           <div class="mx-auto mt-3">
