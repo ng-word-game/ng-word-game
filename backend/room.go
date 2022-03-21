@@ -131,7 +131,7 @@ func (r *Room) checkEndGame() (bool, *Client) {
 
 func (r *Room) changeTurn() {
 	r.WithLockRoom(func() {
-		if r.nextClientIdx+1 < r.maxPlayer {
+		if r.nextClientIdx+1 < len(r.clients) {
 			r.nextClientIdx++
 		} else {
 			r.nextClientIdx = 0

@@ -111,7 +111,7 @@ export default defineComponent({
       router.push({ name: 'index' })
     }
     const user = store.data.users.filter(u => u.Id === store.state.clientId)[0]
-    const anotherUsers = store.data.users.filter(u => u.Id !== store.state.clientId)
+    const anotherUsers = ref<{ Id: string; Name: string; }[]>(store.data.users.filter(u => u.Id !== store.state.clientId))
     const ngChar = ref('')
     const ngCharValid = ref(true)
     const checkDuplicateNgChar = ref(false)
@@ -158,6 +158,7 @@ export default defineComponent({
       }
     })
     watch(data, () => {
+      anotherUsers.value = data.users.filter(u => u.Id !== store.state.clientId)
       setCharInfos()
       nextTurn.value = data.next_turn
       turn.value = data.turn
@@ -203,17 +204,22 @@ export default defineComponent({
         }
       })
       userCharInfo.value = usrCharInfo
-      anotherUsers.forEach((user) => {
+      if (!anotherUsers.value || anotherUsers.value === []) {
+        return
+      }
+      anotherUsers.value.forEach((user) => {
         const anUsrCharInfo: {char: string, isOpen: boolean, isHide: boolean}[] = []
-        store.data.word_state[user.Id].forEach((item) => {
-          for (const c in item) {
-            anUsrCharInfo.push({ char: c, isOpen: item[c] === WORDSTATE.OpenedWord, isHide: item[c] === WORDSTATE.HiddenWord })
+        if (user.Id in store.data.word_state) {
+          store.data.word_state[user.Id].forEach((item) => {
+            for (const c in item) {
+              anUsrCharInfo.push({ char: c, isOpen: item[c] === WORDSTATE.OpenedWord, isHide: item[c] === WORDSTATE.HiddenWord })
+            }
+          })
+          if (anotherUsersCharInfo.filter(item => item.id === user.Id).length === 0) {
+            anotherUsersCharInfo.push({ id: user.Id, chars: anUsrCharInfo })
+          } else {
+            anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars = anUsrCharInfo
           }
-        })
-        if (anotherUsersCharInfo.filter(item => item.id === user.Id).length === 0) {
-          anotherUsersCharInfo.push({ id: user.Id, chars: anUsrCharInfo })
-        } else {
-          anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars = anUsrCharInfo
         }
       })
     }

@@ -127,10 +127,23 @@ func (r *Room) run() {
 				}
 			})
 		case client := <-r.leave:
+			if r.clientIds[r.nextClientIdx] == client.id {
+				r.changeTurn()
+			}
 			r.mux.RLock()
 			delete(r.clients, client.id)
 			clientsLen := len(r.clients)
 			r.mux.RUnlock()
+			if clientsLen == 1 {
+				r.gameStop()
+			}
+			out, err := createOutbound(resultOK, r)
+			if err != nil {
+				continue
+			}
+			for _, client := range r.clients {
+				client.send <- out
+			}
 			if clientsLen == 0 {
 				log.Println("close room, goroutine: ", runtime.NumGoroutine())
 				return

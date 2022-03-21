@@ -57,7 +57,6 @@ func (c *Client) read() {
 
 	defer func() {
 		log.Println(c.name, " leave")
-		c.room.gameStop()
 		close(c.close)
 	}()
 	for {
