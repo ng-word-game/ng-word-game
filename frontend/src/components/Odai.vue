@@ -83,7 +83,7 @@ export default defineComponent({
     }, { deep: true })
     watch(wordRef, () => {
       wordValid.value = wordRef.value.match(/^[ぁ-んー　]{4,6}$/) == null
-      if (wordRef.value !== '') {
+      if (!wordValid.value && wordRef.value !== '') {
         axios.get(`${location.protocol}//${location.host}/api/suggest/search?hl=ja&q=${wordRef.value}&output=toolbar`, { responseType: 'document' }).then((response) => {
           const xml = response.data as XMLDocument
           const suggestions = xml.querySelectorAll('suggestion')
