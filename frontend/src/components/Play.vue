@@ -1,13 +1,21 @@
 <template>
   <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
-    <div v-for="user in anotherUsers" class="mb-3">
-      <p class="text-center" style="font-size: 1.2rem; font-weight: bold;">
-        {{ user.Name }}のワード
-      </p>
-      <SquareCom v-if="user && anotherUsersCharInfo !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id) !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" :chara-info="anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" />
+    <div class="table-responsive" style="height: 15vh; width: 100%;">
+      <table class="table table-borderless table-sm">
+        <tbody>
+          <tr v-for="(user, idx) in anotherUsers" :key="idx">
+            <td>
+              <div class="text-center" style="font-size: 1.2rem; font-weight: bold;">
+                {{ user.Name }}のワード
+              </div>
+              <SquareCom v-if="user && anotherUsersCharInfo !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id) !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" :chara-info="anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="d-flex align-items-center justify-content-around" style="height: 40vh; width: 80%;">
-      <div style="width: 30%;">
+    <div class="d-flex align-items-center justify-content-around" style="height: 55vh; width: 100%; max-height: 380px; max-width: 700px;">
+      <div class="d-flex flex-column" style="width: 30%; height: 100%;">
         <div class="card">
           <p class="text-center" style="font-size: 100%;">
             お題
@@ -26,11 +34,11 @@
         </div>
         <div class="d-flex">
           <div class="text-center" style="width: 50%;">
-            <p>制限時間</p>
-            <p v-if="nextTurn === user.Id">残り<span class="font-weight-bold" style="color: red;">{{ timer }}</span>秒</p>
+            <p style="font-size: 85%;">制限時間</p>
+            <p v-if="nextTurn === user.Id">残り<br><span class="font-weight-bold" style="color: red;">{{ timer }}</span>秒</p>
           </div>
           <div class="text-center" style="width: 50%;">
-            <p>ターン</p>
+            <p style="font-size: 85%;">ターン</p>
             <p class="font-weight-bold">{{ turn }}</p>
           </div>
         </div>
@@ -70,11 +78,13 @@
         </div>
       </div>
     </div>
-    <div class="mt-3">
+    <div style="height: 15vh; width: 100%;">
       <p class="text-center" style="font-size: 1.2rem; font-weight: bold;">
         {{ user.Name }}のワード
       </p>
-      <SquareCom v-if="userCharInfo" :chara-info="userCharInfo" />
+      <div>
+        <SquareCom v-if="userCharInfo" :chara-info="userCharInfo" />
+      </div>
     </div>
     <b-modal id="modal-1" ref="modalRef" hide-footer>
       <div class="d-block text-center">

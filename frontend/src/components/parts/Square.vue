@@ -1,7 +1,7 @@
 /* eslint-disable object-property-newline */
 <template>
   <div>
-    <div class="d-flex">
+    <div class="d-flex justify-content-center">
       <div v-for="(v, idx) in props.charaInfo" :key="idx">
         <div v-if="v.isHide">
           <div v-if="isSmall(v.char)" class="circle--small hide">・</div>
