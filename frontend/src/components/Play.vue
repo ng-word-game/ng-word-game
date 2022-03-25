@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
-    <div class="table-responsive" style="height: 15vh; width: 100%;">
+    <div class="table-responsive" style="height: 20vh; width: 100%;">
       <table class="table table-borderless table-sm">
         <tbody>
           <tr v-for="(user, idx) in anotherUsers" :key="idx">
