@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
-    <div class="card my-3" style="width: 75%;">
+    <div class="card my-2" style="height: 35vh; width: 80%;">
       <div class="card-body">
         <h4 class="card-title text-center">
           NG単語ゲーム
@@ -13,7 +13,7 @@
         </div>
       </div>
     </div>
-    <div class="card my-3" style="width: 75%;">
+    <div class="card my-2" style="height: 22vh; width: 80%;">
       <div class="card-body">
         <h5 class="text-center">ルームを作成</h5>
         <div class="mx-auto form-inline justify-content-center">
@@ -30,7 +30,7 @@
         <div v-if="maxPlayerErr" class="form-text text-center" style="color: red;">募集人数は2人以上にしてください</div>
       </div>
     </div>
-    <div class="card my-3" style="width: 75%;">
+    <div class="card my-2" style="height: 30vh; width: 80%;">
       <div class="card-body">
         <h5 class="py-3 text-center">募集中のルーム</h5>
         <table class="table table-borderless">
