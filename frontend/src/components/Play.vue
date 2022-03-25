@@ -28,9 +28,12 @@
           <b-button v-if="nextTurn === user.Id" v-b-modal.modal-1 variant="outline-info" style="width: 80%;">
             文字を選ぶ
           </b-button>
-          <p v-else>
-            相手を待っています...
+          <p
+            v-else-if="anotherUsers.filter(u => u.Id === nextTurn) !== [] && anotherUsers.filter(u => u.Id === nextTurn)[0] &&
+            anotherUsers.filter(u => u.Id === nextTurn)[0].Name">
+            {{ anotherUsers.filter(u => u.Id === nextTurn)[0].Name }}が入力中...
           </p>
+          <p v-else>他のプレイヤーを待っています...</p>
         </div>
         <div class="d-flex">
           <div class="text-center" style="width: 50%;">
@@ -193,6 +196,14 @@ export default defineComponent({
       ngCharValid.value = ngChar.value !== '' && ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
       checkDuplicateNgChar.value = ngChar.value !== '' && ngCharas.value.filter(item => item.char === ngChar.value).length > 0
     })
+
+    // watch(nextTurn, () => {
+    //   if (anotherUsers.value.filter(u => u.Id === nextTurn.value) !== [] &&
+    //       anotherUsers.value.filter(u => u.Id === nextTurn.value)[0] &&
+    //       anotherUsers.value.filter(u => u.Id === nextTurn.value)[0].Name) {
+    //     nextTurnName.value = anotherUsers.value.filter(u => u.Id === nextTurn.value)[0].Name
+    //   }
+    // })
 
     const checkLose = () => {
       if (!userCharInfo.value) {
