@@ -6,7 +6,7 @@
     "dev": "PORT=8000 nuxt",
     "build": "nuxt build",
     "start": "nuxt start",
-    "generate": "API_URL=ng-word-game.kikils.ga:443 nuxt generate",
+    "generate": "API_URL=mojiate.kikils.ga:443 nuxt generate",
     "lint:js": "eslint --ext \".js,.ts,.vue\" --ignore-path .gitignore .",
     "lint": "yarn lint:js",
     "lintfix": "yarn lint:js --fix"
