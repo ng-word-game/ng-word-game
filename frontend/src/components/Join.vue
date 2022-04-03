@@ -3,9 +3,9 @@
     <div class="card my-2" style="height: 35vh; width: 80%;">
       <div class="card-body">
         <h4 class="card-title text-center">
-          NG単語ゲーム
+          <img src="~/assets/images/title.png" alt="MOJIATE">
         </h4>
-        <p class="text-center">参加方法: 新しくルームを作成するか、募集中のルームに参加する</p>
+        <p class="text-center">ベータ版</p>
         <div class="form-group d-flex flex-column justify-content-center">
           <h5 class="text-center">ユーザー名</h5>
           <input v-model="name" type="text" class="form-control" placeholder="ユーザー名">

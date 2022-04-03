@@ -7,7 +7,7 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'NG単語ゲーム',
+    title: 'MOJIATE',
     htmlAttrs: {
       lang: 'ja'
     },
