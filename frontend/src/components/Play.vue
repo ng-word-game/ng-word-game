@@ -1,19 +1,5 @@
 <template>
   <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
-    <div class="table-responsive" style="height: 20vh; width: 100%;">
-      <table class="table table-borderless table-sm">
-        <tbody>
-          <tr v-for="(user, idx) in anotherUsers" :key="idx">
-            <td>
-              <div class="text-center" style="font-size: 1.2rem; font-weight: bold;">
-                {{ user.Name }}のワード
-              </div>
-              <SquareCom v-if="user && anotherUsersCharInfo !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id) !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" :chara-info="anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
     <div class="d-flex align-items-center justify-content-around" style="height: 55vh; width: 100%; max-height: 380px; max-width: 700px;">
       <div class="d-flex flex-column" style="width: 30%; height: 100%;">
         <div class="card">
@@ -48,9 +34,6 @@
       </div>
       <div class="card" style="height: 100%; width: 60%;">
         <div class="card-body">
-          <h5 class="text-center">
-            NGリスト
-          </h5>
           <div class="table-responsive" style="height: 80%;">
             <table class="table table-sm table-striped">
               <thead class="table-light" style="position: sticky; top: 0;">
@@ -59,7 +42,7 @@
                     名前
                   </th>
                   <th class="text-center" scope="col">
-                    NG文字
+                    文字
                   </th>
                 </tr>
               </thead>
@@ -80,6 +63,20 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="table-responsive" style="width: 100%;">
+      <table class="table table-borderless table-sm">
+        <tbody>
+          <tr v-for="(user, idx) in anotherUsers" :key="idx">
+            <td>
+              <div class="text-center" style="font-size: 1.2rem; font-weight: bold;">
+                {{ user.Name }}のワード
+              </div>
+              <SquareCom v-if="user && anotherUsersCharInfo !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id) !== [] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0] && anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" :chara-info="anotherUsersCharInfo.filter(item => item.id === user.Id)[0].chars" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     <div style="height: 15vh; width: 100%;">
       <p class="text-center" style="font-size: 1.2rem; font-weight: bold;">
