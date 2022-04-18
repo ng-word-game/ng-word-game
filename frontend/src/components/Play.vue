@@ -64,7 +64,7 @@
         </div>
       </div>
     </div>
-    <div class="table-responsive" style="width: 100%;">
+    <div class="table" style="width: 100%;">
       <table class="table table-borderless table-sm">
         <tbody>
           <tr v-for="(user, idx) in anotherUsers" :key="idx">
