@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
+  <div class="d-flex justify-content-center align-items-center flex-column mt-4 mb-4">
     <div class="d-flex align-items-center justify-content-around" style="height: 55vh; width: 100%; max-height: 380px; max-width: 700px;">
       <div class="d-flex flex-column" style="width: 30%; height: 100%;">
         <div class="card">
