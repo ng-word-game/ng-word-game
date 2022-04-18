@@ -154,6 +154,7 @@ export default defineComponent({
     const timerDown = () => {
       timer.value = 60
       const id = setInterval(() => {
+        console.log('timer; ', timer.value)
         if (timer.value < 1) {
           ngChar.value = ''
           registerNgChar()
