@@ -16,7 +16,7 @@ services:
         - "8000:8000"
       stdin_open: true
       tty: true
-      command: "nuxt"
+      command: "yarn dev"
       environment:
         - CHOKIDAR_USEPOLLING=true
         - API_URL=0.0.0.0:443
