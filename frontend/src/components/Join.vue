@@ -60,6 +60,7 @@
     >
       <div class="d-block text-center">
         <h3>参加者を待っています</h3>
+        <div class="loader">Loading...</div>
         <div v-if="roomInfo">
           <h5 v-if="roomInfo.players">参加ユーザー: {{ roomInfo.players.join(', ') }}</h5>
           <h5 v-if="roomInfo.num && roomInfo.max_player">{{ roomInfo.num }}/{{ roomInfo.max_player }}</h5>
@@ -75,6 +76,7 @@ import axios from 'axios'
 import { key } from '../utils/store'
 import { STATE } from '../utils/socket'
 import { blobToJson } from '../utils/blobReader'
+import 'assets/css/loading.css'
 
 export default defineComponent({
   name: 'PlayerJoin',
