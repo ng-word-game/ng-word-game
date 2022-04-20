@@ -1,6 +1,6 @@
 version: "3"
 services:
-  app:
+  backend:
     build:
       context: .
       dockerfile: ./backend/Dockerfile
@@ -14,14 +14,20 @@ services:
       - ./backend/:/app/backend
 
   frontend:
-      build: ./frontend
-      ports:
-        - "8000:8000"
-      stdin_open: true
-      tty: true
-      command: "yarn dev"
-      environment:
-        - CHOKIDAR_USEPOLLING=true
-        - API_URL=0.0.0.0:443
-      volumes:
-        - ./frontend/src:/src
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    ports:
+      - "8000:8000"
+    stdin_open: true
+    tty: true
+    command: "yarn dev"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - API_URL=0.0.0.0:443
+    volumes:
+      - ./frontend:/app/frontend
+      - node_modules:/app/frontend/src/node_modules
+
+volumes:
+  node_modules:
