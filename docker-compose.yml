@@ -1,23 +1,26 @@
 version: "3"
 services:
   app:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
     tty: true
     ports:
       - 443:443
+    entrypoint: "air -c air.toml"
     environment:
       - CGO_ENABLED=0
     volumes:
-      - ./backend:/go/src/github.com/kikils/go-websocket
+      - ./backend/:/app/backend
 
   frontend:
-      build: ./frontend
-      ports:
-        - "8000:8000"
-      stdin_open: true
-      tty: true
-      environment:
-        - CHOKIDAR_USEPOLLING=true
-        - API_URL=0.0.0.0:443
-      volumes:
-        - ./frontend/src:/src
+    build: ./frontend
+    ports:
+      - "8000:8000"
+    stdin_open: true
+    tty: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - API_URL=0.0.0.0:443
+    volumes:
+      - ./frontend/src:/src
