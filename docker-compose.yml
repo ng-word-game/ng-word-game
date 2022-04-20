@@ -14,13 +14,14 @@ services:
       - ./backend/:/app/backend
 
   frontend:
-    build: ./frontend
-    ports:
-      - "8000:8000"
-    stdin_open: true
-    tty: true
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - API_URL=0.0.0.0:443
-    volumes:
-      - ./frontend/src:/src
+      build: ./frontend
+      ports:
+        - "8000:8000"
+      stdin_open: true
+      tty: true
+      command: "yarn dev"
+      environment:
+        - CHOKIDAR_USEPOLLING=true
+        - API_URL=0.0.0.0:443
+      volumes:
+        - ./frontend/src:/src
