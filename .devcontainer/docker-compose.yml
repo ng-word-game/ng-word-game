@@ -5,3 +5,4 @@ services:
   frontend:
     volumes:
       - .:/workspace:cached
+      - node_modules:/workspace/frontend/src/node_modules
