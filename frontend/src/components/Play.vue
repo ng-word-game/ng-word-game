@@ -96,6 +96,12 @@
       <b-button :disabled="ngCharValid" class="mt-2" variant="outline-info" block @click="registerNgChar">
         決定
       </b-button>
+      <KanaPaletteCom
+        :selected-char="ngChar"
+        :opened-chars="ngCharas.map(c => c.char)"
+        :dangerous-chars="userCharInfo == null ? [] : userCharInfo.map(c => c.char)"
+        @selected="kanaPaletteSelected"
+      />
     </b-modal>
   </div>
 </template>
@@ -105,11 +111,13 @@ import { defineComponent, inject, ref, watch, onMounted, reactive, useRouter, us
 import { key } from '../utils/store'
 import { SET, WORDSTATE } from '../utils/socket'
 import SquareCom from './parts/Square.vue'
+import KanaPaletteCom from './parts/KanaPalette/KanaPalette.vue'
 
 export default defineComponent({
   name: 'PlayCom',
   components: {
-    SquareCom
+    SquareCom,
+    KanaPaletteCom
   },
   setup () {
     const store = inject(key)
@@ -159,6 +167,10 @@ export default defineComponent({
         timer.value -= 1
       }, 1000)
       timerId.value = id
+    }
+
+    const kanaPaletteSelected = (char: string) => {
+      ngChar.value = char
     }
 
     onMounted(() => {
@@ -254,6 +266,7 @@ export default defineComponent({
       checkDuplicateNgChar,
       modalRef,
       registerNgChar,
+      kanaPaletteSelected,
       thema,
       timer,
       turn,

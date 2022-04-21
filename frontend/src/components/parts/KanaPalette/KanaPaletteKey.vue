@@ -1,63 +1,59 @@
 <template>
-  <div
-    class="kana-palette-key"
-    :class="className"
-    @click="onClick"
-  >
+  <div class="kana-palette-key" :class="className" @click="onClick">
     {{ props.char }}
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from "@nuxtjs/composition-api";
+import { defineComponent, computed } from '@nuxtjs/composition-api'
 
 export default defineComponent({
-  name: "KanaPaletteKeyCom",
+  name: 'KanaPaletteKeyCom',
   props: {
     char: {
       type: String as () => string,
-      default: '',
+      default: ''
     },
     isOpened: {
       type: Boolean as () => boolean,
-      default: false,
+      default: false
     },
     isDangerous: {
       type: Boolean as () => boolean,
-      default: false,
+      default: false
     },
     isSelected: {
       type: Boolean as () => boolean,
-      default: false,
+      default: false
     },
     isEnabled: {
       type: Boolean as () => boolean,
-      default: true,
-    },
+      default: true
+    }
   },
-  setup(props, context) {
+  setup (props, context) {
     const className = computed(() => {
-      if (!props.isEnabled) return ['is-disabled'];
-      if (props.isOpened) return ['is-opened'];
-      if (props.isDangerous) return ['is-dangerous'];
-      if (props.isSelected) return ['is-selected'];
-      return [];
-    });
-    
+      if (!props.isEnabled) { return ['is-disabled'] }
+      if (props.isOpened) { return ['is-opened'] }
+      if (props.isDangerous) { return ['is-dangerous'] }
+      if (props.isSelected) { return ['is-selected'] }
+      return []
+    })
+
     const onClick = () => {
       if (!props.isEnabled || props.isOpened || props.isSelected) {
-        return;
+        return
       }
 
-      context.emit('click', props.char);
-    };
+      context.emit('click', props.char)
+    }
     return {
       props,
       className,
-      onClick,
-    };
+      onClick
+    }
   }
-});
+})
 </script>
 
 <style scoped>
@@ -86,6 +82,6 @@ export default defineComponent({
 
 .kana-palette-key.is-disabled {
   border-color: rgba(0, 0, 0, 0);
-  cursor:default;
+  cursor: default;
 }
 </style>

@@ -7,18 +7,16 @@
             v-if="key != null"
             :key="sIndex+rIndex+index"
             :char="key.char"
-            :isOpened="key.isOpened"
-            :isDangerous="key.isDangerous"
-            :isSelected="key.isSelected"
+            :is-opened="key.isOpened"
+            :is-dangerous="key.isDangerous"
+            :is-selected="key.isSelected"
             @click="onKeyClick"
-          >
-          </KanaPaletteKeyCom>
+          />
           <KanaPaletteKeyCom
             v-else
             :key="sIndex+rIndex+index"
-            :isEnabled="false"
-          >
-          </KanaPaletteKeyCom>
+            :is-enabled="false"
+          />
         </div>
       </div>
     </div>
@@ -26,8 +24,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from "@nuxtjs/composition-api";
-import KanaPaletteKeyCom from './KanaPaletteKey.vue';
+import { defineComponent, computed } from '@nuxtjs/composition-api'
+import KanaPaletteKeyCom from './KanaPaletteKey.vue'
 
 interface KanaPalette {
   sections: KanaPaletteSection[];
@@ -58,35 +56,35 @@ type KanaPaletteBuilder = (openedChars: string[], dangerousChars: string[], sele
 const defineKanaPalette = (chars: KanaPaletteDefinition) => {
   return ((openedChars: string[], dangerousChars: string[], selectedChar: string) => {
     const toKey: (c: string) => KanaPaletteKey | null = (c: string) => {
-      if (c === "") {
-        return null;
+      if (c === '') {
+        return null
       }
 
       return ({
         char: c,
-        isOpened: openedChars.indexOf(c) !== -1,
-        isDangerous: dangerousChars.indexOf(c) !== -1,
-        isSelected: selectedChar === c,
-      } as KanaPaletteKey);
-    };
-    const toRow = (chars: string[]) => ({ keys: chars.map(toKey) });
-    const toSection = (rows: string[][]) => ({ rows: rows.map(toRow) });
-    const palette = { sections: chars.map(toSection) } as KanaPalette;
+        isOpened: openedChars.includes(c),
+        isDangerous: dangerousChars.includes(c),
+        isSelected: selectedChar === c
+      } as KanaPaletteKey)
+    }
+    const toRow = (chars: string[]) => ({ keys: chars.map(toKey) })
+    const toSection = (rows: string[][]) => ({ rows: rows.map(toRow) })
+    const palette = { sections: chars.map(toSection) } as KanaPalette
 
-    return palette;
-  }) as KanaPaletteBuilder;
-};
+    return palette
+  }) as KanaPaletteBuilder
+}
 
 const transformToVertical = (section: KanaPaletteSection) => {
-  const width = section.rows.length;
-  const height = Math.max(...section.rows.map(r => r.keys.length));
+  const width = section.rows.length
+  const height = Math.max(...section.rows.map(r => r.keys.length))
   const keys =
     [...Array(height)].map((_, v) =>
       [...Array(width)].map((_, h) =>
         section.rows[width - h - 1].keys[v]
-    ));
-  return keys;
-};
+      ))
+  return keys
+}
 
 const kanaPaletteBuilder = defineKanaPalette([
   [
@@ -99,7 +97,7 @@ const kanaPaletteBuilder = defineKanaPalette([
     ['ま', 'み', 'む', 'め', 'も'],
     ['や', '', 'ゆ', '', 'よ'],
     ['ら', 'り', 'る', 'れ', 'ろ'],
-    ['わ', 'を', 'ん', '', 'ー'],
+    ['わ', 'を', 'ん', '', 'ー']
   ],
   [
     ['が', 'ぎ', 'ぐ', 'げ', 'ご'],
@@ -108,47 +106,47 @@ const kanaPaletteBuilder = defineKanaPalette([
     ['ば', 'び', 'ぶ', 'べ', 'ぼ'],
     ['ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ'],
     ['ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ'],
-    ['ゃ', 'ゅ', 'ょ',  '',  'っ'],
-  ],
-]);
+    ['ゃ', 'ゅ', 'ょ', '', 'っ']
+  ]
+])
 
 export default defineComponent({
-  name: "KanaPaletteCom",
+  name: 'KanaPaletteCom',
   components: {
     KanaPaletteKeyCom
   },
   props: {
     openedChars: {
       type: Array as () => string[],
-      default: () => [],
+      default: () => []
     },
     dangerousChars: {
       type: Array as () => string[],
-      default: () => [],
+      default: () => []
     },
     selectedChar: {
       type: String as () => string,
-      default: "",
-    },
+      default: ''
+    }
   },
-  setup(props, context) {
+  setup (props, context) {
     const keys = computed(() => {
-      const palette = kanaPaletteBuilder(props.openedChars, props.dangerousChars, props.selectedChar);
-      const transformedSections = palette.sections.map(s => transformToVertical(s));
-      return transformedSections;
-    });
+      const palette = kanaPaletteBuilder(props.openedChars, props.dangerousChars, props.selectedChar)
+      const transformedSections = palette.sections.map(s => transformToVertical(s))
+      return transformedSections
+    })
 
     const onKeyClick = (char: string) => {
-      context.emit('selected', char);
-    };
+      context.emit('selected', char)
+    }
 
     return {
       props,
       keys,
-      onKeyClick,
+      onKeyClick
     }
   }
-});
+})
 </script>
 
 <style scoped>
