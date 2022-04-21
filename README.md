@@ -1,8 +1,23 @@
-## NG単語ゲーム
+# MOJIATE
 
-### 動作イメージ
-![movie](https://user-images.githubusercontent.com/14112016/156953821-958daf3d-f18b-452b-8097-ff8d7a092b6c.gif)
+```
+    __  _______      _________  ____________
+   /  |/  / __ \    / /  _/   |/_  __/ ____/
+  / /|_/ / / / /_  / // // /| | / / / __/   
+ / /  / / /_/ / /_/ // // ___ |/ / / /___   
+/_/  /_/\____/\____/___/_/  |_/_/ /_____/   
+```
 
+## Demo
+[MOJIATE](http://mojiate.kikils.ga)
+
+## MOJIATEについて
+### 概要
+
+MOJIATEは、複数人でリアルタイム対戦ができるゲームだよ。
+
+### ゲームルール
+プレイヤーはそれぞれお題に沿って単語を決めて、お互いに単語に含まれる文字を当て合うよ。最後まで全ての文字を当てられなかった人が勝ちだよ。
 
 ## 開発スタートアップ
 
@@ -27,3 +42,6 @@ VSCode ユーザーはフロントに関しては devcontainer 使った方が�
 ### バックエンド開発時
 フロントと基本同じ
 ただ、バックエンドは devcontainer を使うメリットがあまり無いと思う
+
+## License
+The source code is licensed MIT. The website content is licensed CC BY 4.0,see LICENSE.
