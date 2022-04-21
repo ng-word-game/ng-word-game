@@ -14,13 +14,14 @@
   4. あとは container が立つのを待って開発開始
 
 devcontainer を使うことでコンテナに入った状態で開発できるよ
-もし devcontainer を使わない場合、docker-compose の設定上 node_modules はホスト側では空なので『モジュールが無い』等のエラーが出ることがあルけど、それを回避できるよ
+もし devcontainer を使わない場合、docker-compose の設定上 node_modules はホスト側では空なので『モジュールが無い』等のエラーが出ることがあるけど、それを回避できるよ
 devcontainer で frontend だけ選択した場合でも、裏側で backend のコンテナも立つで！！
 
 - devcontainer を使わないパターン
   1. `docker-compose up` する
   2. 開発するだけ
 
+上記でも説明してるけど、node_modules がホスト側で空であることによるエラーが出ちゃう場合は、ローカルで `yarn install` するしかなさそう(docker 使ってるのにね)
 VSCode ユーザーはフロントに関しては devcontainer 使った方がいいかも
 
 ### バックエンド開発時
