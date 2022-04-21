@@ -5,6 +5,6 @@
       "../.devcontainer/docker-compose.yml"
   ],
   "service": "backend",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/app",
   "shutdownAction": "stopCompose"
 }

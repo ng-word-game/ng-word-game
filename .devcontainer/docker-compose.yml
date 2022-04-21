@@ -1,8 +1,8 @@
 services:
   backend:
     volumes:
-      - .:/workspace:cached
+      - .:/app:cached
   frontend:
     volumes:
-      - .:/workspace:cached
-      - node_modules:/workspace/frontend/src/node_modules
+      - .:/app:cached
+      - node_modules:/app/frontend/src/node_modules
