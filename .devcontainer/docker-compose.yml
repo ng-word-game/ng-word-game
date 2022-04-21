@@ -1,0 +1,8 @@
+services:
+  backend:
+    volumes:
+      - .:/app:cached
+  frontend:
+    volumes:
+      - .:/app:cached
+      - node_modules:/app/frontend/src/node_modules

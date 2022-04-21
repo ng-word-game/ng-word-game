@@ -1,6 +1,6 @@
-module github.com/kikils/go-websocket
+module github.com/ng-word-game/ng-word-game
 
-go 1.15
+go 1.18
 
 require (
 	github.com/gorilla/websocket v1.5.0

@@ -1,24 +1,33 @@
-version: "3"
+version: "3.8"
 services:
-  app:
-    build: ./backend
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
     tty: true
     ports:
       - 443:443
+    entrypoint: "air -c air.toml"
     environment:
       - CGO_ENABLED=0
     volumes:
-      - ./backend:/go/src/github.com/kikils/go-websocket
+      - .:/app
 
   frontend:
-      build: ./frontend
-      ports:
-        - "8000:8000"
-      stdin_open: true
-      tty: true
-      command: "yarn dev"
-      environment:
-        - CHOKIDAR_USEPOLLING=true
-        - API_URL=0.0.0.0:443
-      volumes:
-        - ./frontend/src:/src
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    ports:
+      - "8000:8000"
+    stdin_open: true
+    tty: true
+    command: "yarn dev"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - API_URL=0.0.0.0:443
+    volumes:
+      - ./frontend:/app/frontend
+      - node_modules:/app/frontend/src/node_modules
+
+volumes:
+  node_modules:
