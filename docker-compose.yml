@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 services:
   backend:
     build:
@@ -11,7 +11,7 @@ services:
     environment:
       - CGO_ENABLED=0
     volumes:
-      - ./backend/:/app/backend
+      - .:/app
 
   frontend:
     build:
