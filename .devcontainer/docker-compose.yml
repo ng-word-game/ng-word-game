@@ -1,0 +1,7 @@
+services:
+  backend:
+    volumes:
+      - .:/workspace:cached
+  frontend:
+    volumes:
+      - .:/workspace:cached
