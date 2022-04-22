@@ -150,12 +150,17 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.kana-palette {
+  padding: 10px;
+}
+
 .kana-palette .section {
   margin-bottom: 0.5em;
 }
 
 .kana-palette .row {
   display: flex;
+  justify-content: center;
 }
 .kana-palette .key {
   width: 2em;
