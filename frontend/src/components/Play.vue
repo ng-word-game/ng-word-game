@@ -188,7 +188,7 @@ export default defineComponent({
     })
 
     const ngCharValid = computed(() =>
-      ngChar.value !== '' && !(/^[ぁ-んー　]{1}$/.test(ngChar.value)))
+      ngChar.value !== '' && !(/^[ぁ-ゔー]{1}$/.test(ngChar.value)))
     const checkDuplicateNgChar = computed(() =>
       ngChar.value !== '' && ngCharas.value.find(item => item.char === ngChar.value))
 

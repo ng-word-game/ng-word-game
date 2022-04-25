@@ -73,7 +73,7 @@ export default defineComponent({
       })
     }
 
-    const wordValid = computed(() => !(/^[ぁ-んー　]{4,6}$/.test(wordRef.value)))
+    const wordValid = computed(() => !(/^[ぁ-ゔー]{4,6}$/.test(wordRef.value)))
 
     watch(data, () => {
       if (data.game_state === STATE.GameStart) {
