@@ -10,6 +10,7 @@ const (
 	GameStart    = iota
 	GameEnd      = iota
 	GameStop     = iota
+	GameDrawEnd  = iota
 )
 
 const (
