@@ -18,7 +18,7 @@
         <h5 class="text-center">ルームを作成</h5>
         <div class="mx-auto form-inline justify-content-center">
           <label for="inputMaxPlayer">募集人数: </label>
-          <input id="inputMaxPlayer" type="number" v-model="maxPlayer" class="mx-2 form-control" placeholder="人数" style="width: 25%;">
+          <input id="inputMaxPlayer" type="number" min="2" v-model="maxPlayer" class="mx-2 form-control" placeholder="人数" style="width: 25%;">
           <button v-if="!waiting" type="submit" class="btn btn-outline-info" :disabled="waiting" @click="createRoom">
             ルームを作成
           </button>
@@ -85,7 +85,7 @@ export default defineComponent({
     const store = inject(key)
     const name = ref<string>('')
     const nameErr = ref(false)
-    const maxPlayer = ref(0)
+    const maxPlayer = ref(2)
     const maxPlayerErr = ref(false)
     const router = useRouter()
     if (!store) {
