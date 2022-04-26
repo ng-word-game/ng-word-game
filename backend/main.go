@@ -29,7 +29,7 @@ func loggingSettings(filename string) {
 		err := os.Mkdir("/.logs", 0777)
 		log.Println(err)
 	}
-	logfile, err := os.OpenFile("/.logs/" + filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logfile, err := os.OpenFile("/.logs/"+filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}
