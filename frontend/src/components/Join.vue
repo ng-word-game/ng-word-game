@@ -81,9 +81,12 @@ import 'assets/css/loading.css'
 export default defineComponent({
   name: 'PlayerJoin',
   setup () {
+    const saveName = (name: string) => window.localStorage.setItem('last-used-name', name)
+    const getName = () => window.localStorage.getItem('last-used-name') ?? ''
+
     const { app } = useContext()
     const store = inject(key)
-    const name = ref<string>('')
+    const name = ref(getName())
     const nameErr = ref(false)
     const maxPlayer = ref(0)
     const maxPlayerErr = ref(false)
@@ -160,6 +163,7 @@ export default defineComponent({
         maxPlayerErr.value = true
         return
       }
+      saveName(name.value);
       nameErr.value = false
       maxPlayerErr.value = false
       store.setName(name.value)
@@ -190,6 +194,7 @@ export default defineComponent({
         nameErr.value = true
         return
       }
+      saveName(name.value);
       nameErr.value = false
       store.setName(name.value)
       store.setClientId(clientId)
