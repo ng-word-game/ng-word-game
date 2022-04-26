@@ -32,7 +32,7 @@ export default defineComponent({
         clearInterval(pingFunc())
         return
       }
-      if (data.game_state === STATE.GameStop || data.game_state === STATE.GameEnd) {
+      if (data.game_state === STATE.GameStop || data.game_state === STATE.GameEnd || data.game_state === STATE.GameDrawEnd) {
         injectedStore.state.socket.close()
       }
     }, { deep: true })

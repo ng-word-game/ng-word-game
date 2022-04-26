@@ -20,6 +20,7 @@ export enum STATE {
     GameStart,
     GameEnd,
     GameStop,
+    GameDrawEnd
 }
 
 export enum SET {

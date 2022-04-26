@@ -11,6 +11,9 @@
         <h3 v-else-if="store.data.game_state == STATE.GameStop" class="card-title text-center">
           対戦相手が退出しました
         </h3>
+        <h3 v-else-if="store.data.game_state == STATE.GameDrawEnd" class="card-title text-center">
+          引き分け
+        </h3>
         <h4 v-if="store.data.game_state != undefined && store.data.game_state == STATE.GameEnd" class="text-center">
           {{ winner() }}の勝利
         </h4>

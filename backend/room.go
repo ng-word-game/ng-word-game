@@ -12,7 +12,7 @@ type Room struct {
 	available     bool
 	clients       Clients
 	gameState     int
-	gameTurn int
+	gameTurn      int
 	thema         string
 	nextClientIdx int
 	clientIds     []string
@@ -100,9 +100,17 @@ func (r *Room) gameStart() {
 func (r *Room) gameEnd(c *Client) {
 	r.WithLockRoom(func() {
 		log.Printf("Game End")
-		r.gameState = GameEnd
-		r.winner = c.id
+		if c != nil {
+			r.gameState = GameEnd
+			r.setWinner(c)
+		} else {
+			r.gameState = GameDrawEnd
+		}
 	})
+}
+
+func (r *Room) setWinner(c *Client) {
+	r.winner = c.id
 }
 
 func (r *Room) checkEndGame() (bool, *Client) {
@@ -122,6 +130,9 @@ func (r *Room) checkEndGame() (bool, *Client) {
 		} else {
 			winner = client
 		}
+	}
+	if passedPlayer == len(r.clients) {
+		return true, nil
 	}
 	if passedPlayer == len(r.clients)-1 {
 		return true, winner
