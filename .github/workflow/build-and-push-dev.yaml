@@ -3,7 +3,7 @@ name: Build and Push ng-word-game to to Dev Environment
 on:
   push:
     branches:
-      - main
+      - support/setup-github-actions
 
 jobs:
   build-and-push-to-gcr:
