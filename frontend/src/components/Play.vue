@@ -101,7 +101,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref, watch, onMounted, reactive, useRouter, useSlots } from '@nuxtjs/composition-api'
+import { defineComponent, inject, ref, watch, onMounted, reactive, useRouter, useSlots, computed } from '@nuxtjs/composition-api'
 import { key } from '../utils/store'
 import { SET, WORDSTATE } from '../utils/socket'
 import SquareCom from './parts/Square.vue'
@@ -123,8 +123,6 @@ export default defineComponent({
     const user = store.data.users.filter(u => u.Id === store.state.clientId)[0]
     const anotherUsers = ref<{ Id: string; Name: string; }[]>(store.data.users.filter(u => u.Id !== store.state.clientId))
     const ngChar = ref('')
-    const ngCharValid = ref(true)
-    const checkDuplicateNgChar = ref(false)
     const modalRef = ref()
     const data = reactive(store.data)
     const nextTurn = ref(store.data.next_turn)
@@ -189,10 +187,10 @@ export default defineComponent({
       ngLast!.scrollIntoView()
     })
 
-    watch(ngChar, () => {
-      ngCharValid.value = ngChar.value !== '' && ngChar.value.match(/^[ぁ-んー　]{1}$/) == null
-      checkDuplicateNgChar.value = ngChar.value !== '' && ngCharas.value.filter(item => item.char === ngChar.value).length > 0
-    })
+    const ngCharValid = computed(() =>
+      ngChar.value !== '' && !(/^[ぁ-ゔー]{1}$/.test(ngChar.value)))
+    const checkDuplicateNgChar = computed(() =>
+      ngChar.value !== '' && ngCharas.value.find(item => item.char === ngChar.value))
 
     // watch(nextTurn, () => {
     //   if (anotherUsers.value.filter(u => u.Id === nextTurn.value) !== [] &&
