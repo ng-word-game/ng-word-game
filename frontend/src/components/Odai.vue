@@ -39,7 +39,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, ref, useRouter, onMounted, watch, reactive, useContext } from '@nuxtjs/composition-api'
+import { defineComponent, inject, ref, useRouter, onMounted, watch, reactive, useContext, computed } from '@nuxtjs/composition-api'
 import axios from 'axios'
 import { key } from '../utils/store'
 import { STATE, SET } from '../utils/socket'
@@ -50,7 +50,6 @@ export default defineComponent({
     const { app } = useContext()
     const store = inject(key)
     const wordRef = ref<string>('')
-    const wordValid = ref(false)
     const router = useRouter()
     const thema = ref('')
     const waiting = ref(false)
@@ -74,6 +73,8 @@ export default defineComponent({
       })
     }
 
+    const wordValid = computed(() => !(/^[ぁ-ゔー]{4,6}$/.test(wordRef.value)))
+
     watch(data, () => {
       if (data.game_state === STATE.GameStart) {
         waiting.value = false
@@ -82,7 +83,6 @@ export default defineComponent({
       }
     }, { deep: true })
     watch(wordRef, () => {
-      wordValid.value = wordRef.value.match(/^[ぁ-んー　]{4,6}$/) == null
       if (!wordValid.value && wordRef.value !== '') {
         axios.get(`${location.protocol}//${location.host}/api/suggest/search?hl=ja&q=${wordRef.value}&output=toolbar`, { responseType: 'document' }).then((response) => {
           const xml = response.data as XMLDocument
