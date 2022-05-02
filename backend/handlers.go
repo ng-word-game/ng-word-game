@@ -145,6 +145,7 @@ func (r *Room) run() {
 				client.send <- out
 			}
 			if clientsLen == 0 {
+				r.available = false
 				log.Println("close room, goroutine: ", runtime.NumGoroutine())
 				return
 			}
