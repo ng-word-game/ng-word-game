@@ -38,15 +38,15 @@ type outbound struct {
 	NextTurn  string               `json:"next_turn"`
 	Winner    string               `json:"winner"`
 	NgChars   []NgChar             `json:"ng_chars"`
-	Turn int `json:"turn"`
+	Turn      int                  `json:"turn"`
 }
 
 func createOutbound(result int, room *Room) ([]byte, error) {
 	room.mux.RLock()
 	defer func() {
-		if err:=recover(); err!=nil {
+		if err := recover(); err != nil {
 			log.Println(err)
-		 }
+		}
 	}()
 	defer room.mux.RUnlock()
 	clientNames := []struct {
@@ -145,6 +145,7 @@ func (r *Room) run() {
 				client.send <- out
 			}
 			if clientsLen == 0 {
+				r.available = false
 				log.Println("close room, goroutine: ", runtime.NumGoroutine())
 				return
 			}
