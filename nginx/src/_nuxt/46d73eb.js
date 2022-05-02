@@ -1,0 +1,1 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[11],{391:function(e,n,t){"use strict";t.r(n);var l=t(47),o=t(389),c=Object(l.b)({name:"PlayPage",components:{PlayCom:o.default},setup:function(){return{}}}),r=t(77),component=Object(r.a)(c,(function(){var e=this.$createElement;return(this._self._c||e)("PlayCom")}),[],!1,null,null,null);n.default=component.exports}}]);
