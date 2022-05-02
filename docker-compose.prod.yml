@@ -1,14 +1,16 @@
 version: "3"
 services:
-  app:
+  backend:
     build: 
-      context: ./backend
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: ./backend/Dockerfile.prod
     tty: true
+    environment:
+      - CGO_ENABLED=0
     ports:
       - 443:443
     volumes:
-      - ./backend:/go/src/github.com/kikils/go-websocket
+      - .:/app
       - ./logs/backend:/.logs
 
   nginx:
