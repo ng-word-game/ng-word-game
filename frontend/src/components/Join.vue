@@ -43,9 +43,9 @@
           </thead>
           <tbody>
             <tr v-for="room in rooms" v-bind:key="room.id">
-              <td>{{ room.players.join(', ') }}</td>
-              <td class="text-center">{{ room.num }}/{{ room.max_player }}</td>
-              <td style="width: 35%;"><button class="btn btn-outline-info" @click="joinRoom(room.id)">参加</button></td>
+              <td v-if="room.players !== null">{{ room.players.join(', ') }}</td>
+              <td v-if="room.players !== null" class="text-center">{{ room.num }}/{{ room.max_player }}</td>
+              <td v-if="room.players !== null" style="width: 35%;"><button class="btn btn-outline-info" @click="joinRoom(room.id)">参加</button></td>
             </tr>
           </tbody>
         </table>
@@ -102,7 +102,7 @@ export default defineComponent({
     const roomId = ref('')
     const roomInfo = ref()
 
-    const rooms = ref<[{id: string}]>()
+    const rooms = ref<[{id: string, players: [], num: number, max_player: number}]>()
     const fetch = () => {
       axios.get(`http://${app.$config.apiURL}/rooms`).then((response) => {
         rooms.value = response.data.rooms
